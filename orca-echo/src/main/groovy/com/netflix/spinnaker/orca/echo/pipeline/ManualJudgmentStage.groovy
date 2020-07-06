@@ -16,13 +16,9 @@
 
 package com.netflix.spinnaker.orca.echo.pipeline
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter
-import com.fasterxml.jackson.annotation.JsonAnySetter
-import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.common.base.Strings
-import com.netflix.spinnaker.fiat.shared.FiatStatus
+import com.netflix.spinnaker.fiat.model.Authorization
+import com.netflix.spinnaker.fiat.model.UserPermission
+import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
@@ -41,6 +37,7 @@ import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 
 @Component
 class ManualJudgmentStage implements StageDefinitionBuilder, AuthenticatedStage {
@@ -87,18 +84,38 @@ class ManualJudgmentStage implements StageDefinitionBuilder, AuthenticatedStage 
       this.manualJudgmentAuthorization = manualJudgmentAuthorization
     }
 
+    @Autowired(required = false)
+    private FiatPermissionEvaluator fiatPermissionEvaluator
+
     @Override
     TaskResult execute(StageExecution stage) {
       StageData stageData = stage.mapTo(StageData)
+      def stageAuthorized = stage.context.get('isAuthorized')
+      def isTest = stage.context.get('isTest')
+      def stageRoles = stage.context.get('stageRoles')
+      def permissions = stage.context.get('permissions')
+      def username = stage.lastModified ? stage.lastModified.user : ""
       String notificationState
       ExecutionStatus executionStatus
 
       switch (stageData.state) {
         case StageData.State.CONTINUE:
+          def flag = stageAuthorized || checkManualJudgmentAuthorizedGroups(stageRoles, permissions, username, isTest)
+          if (flag) {
+            stageAuthorized = true;
+          } else {
+            stageAuthorized = false;
+          }
           notificationState = "manualJudgmentContinue"
           executionStatus = ExecutionStatus.SUCCEEDED
           break
         case StageData.State.STOP:
+          def flag = stageAuthorized || checkManualJudgmentAuthorizedGroups(stageRoles, permissions, username, isTest)
+          if (flag) {
+            stageAuthorized = true;
+          } else {
+            stageAuthorized = false;
+          }
           notificationState = "manualJudgmentStop"
           executionStatus = ExecutionStatus.TERMINAL
           break
@@ -108,20 +125,64 @@ class ManualJudgmentStage implements StageDefinitionBuilder, AuthenticatedStage 
           break
       }
 
-      if (stageData.state != StageData.State.UNKNOWN && !stageData.getRequiredJudgmentRoles().isEmpty()) {
-        // only check authorization _if_ a judgment has been made and required judgment roles have been specified
-        def currentUser = stage.lastModified?.user
-
-        if (!manualJudgmentAuthorization.isAuthorized(stageData.getRequiredJudgmentRoles(), currentUser)) {
-          notificationState = "manualJudgment"
-          executionStatus = ExecutionStatus.RUNNING
-          stage.context.put("judgmentStatus", "")
-        }
+      if (!stageAuthorized) {
+        notificationState = "manualJudgment"
+        executionStatus = ExecutionStatus.RUNNING
+        stage.context.put("judgmentStatus", "")
       }
-
       Map outputs = processNotifications(stage, stageData, notificationState)
 
       return TaskResult.builder(executionStatus).context(outputs).build()
+    }
+
+    boolean checkManualJudgmentAuthorizedGroups(def stageRoles, def permissions, def username, def isTest) {
+
+      if (isTest) {
+        return true
+      }
+      if (username) {
+        UserPermission.View permission = fiatPermissionEvaluator.getPermission(username);
+        if (permission == null) { // Should never happen?
+          return false;
+        }
+        // User has to have all the pipeline roles.
+        Set<Role.View> roleView = permission.getRoles()
+        def userRoles = []
+        roleView.each { it -> userRoles.add(it.getName().trim()) }
+        return checkAuthorizedGroups(userRoles, stageRoles, permissions)
+      } else {
+        return false
+      }
+    }
+
+    boolean checkAuthorizedGroups(def userRoles, def stageRoles, def permissions) {
+
+      def value = false
+      if (!stageRoles) {
+        return true
+      }
+      for (role in userRoles) {
+        if (stageRoles.contains(role)) {
+          for (perm in permissions) {
+            def permKey = perm.getKey()
+            List<String> strList = null
+            if (Authorization.CREATE.name().equals(permKey) ||
+                Authorization.EXECUTE.name().equals(permKey) ||
+                Authorization.WRITE.name().equals(permKey)) {
+              strList = perm.getValue()
+              if (strList && strList.contains(role)) {
+                return true
+              }
+            } else if (Authorization.READ.name().equals(permKey)) {
+              strList = perm.getValue()
+              if (strList && strList.contains(role)) {
+                value = false
+              }
+            }
+          }
+        }
+      }
+      return value
     }
 
     Map processNotifications(StageExecution stage, StageData stageData, String notificationState) {

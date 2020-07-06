@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.orca.controllers
 
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.shared.FiatService
@@ -32,6 +34,8 @@ import com.netflix.spinnaker.orca.api.pipeline.ExecutionPreprocessor
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.PipelineModelMutator
 import com.netflix.spinnaker.orca.igor.BuildService
+import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
+import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -95,6 +99,9 @@ class OperationsController {
 
   @Autowired(required = false)
   FiatService fiatService
+
+  @Autowired(required = false)
+  private FiatPermissionEvaluator fiatPermissionEvaluator
 
   @Autowired(required = false)
   Front50Service front50Service
@@ -166,8 +173,8 @@ class OperationsController {
   }
 
   private Map<String, Object> orchestratePipeline(Map pipeline) {
-    long startTime = System.currentTimeMillis()
-
+    def request = objectMapper.writeValueAsString(pipeline)
+    addStageAuthorizedRoles(request,pipeline)
     Exception pipelineError = null
     try {
       pipeline = parseAndValidatePipeline(pipeline)
@@ -196,6 +203,66 @@ class OperationsController {
       log.info("Failed to start pipeline {} based on request body {}", id, renderForLogs(pipeline))
       throw pipelineError
     }
+  }
+
+  private void addStageAuthorizedRoles(def request, Map pipeline) {
+
+    def applicationName = pipeline.application
+    if (applicationName) {
+      Application application = front50Service.get(applicationName)
+      if (application) {
+        def username = AuthenticatedRequest.getSpinnakerUser().orElse("")
+        def permissions = objectMapper.convertValue(application.getPermission().permissions.permissions,
+            new TypeReference<Map<String, Object>>() {})
+        UserPermission.View permission = fiatPermissionEvaluator.getPermission(username);
+        if (permission == null) { // Should never happen?
+          return;
+        }
+        // User has to have all the pipeline roles.
+        Set<Role.View> roleView = permission.getRoles()
+        def userRoles = []
+        roleView.each { it -> userRoles.add(it.getName().trim()) }
+        def stageList = pipeline.stages
+        def stageRoles = []
+        stageList.each { item ->
+          stageRoles = item.selectedStageRoles
+          item.isAuthorized = checkAuthorizedGroups(userRoles, stageRoles, permissions)
+          item.stageRoles = stageRoles
+          item.permissions = permissions
+        }
+      }
+    }
+  }
+
+  private boolean checkAuthorizedGroups(def userRoles, def stageRoles,
+                                        def permissions) {
+
+    def value = false
+    if (!stageRoles) {
+      return true
+    }
+    for (role in userRoles) {
+      if (stageRoles.contains(role)) {
+        for (perm in permissions) {
+          def permKey = perm.getKey()
+          List<String> strList = null
+          if (Authorization.CREATE.name().equals(permKey) ||
+              Authorization.EXECUTE.name().equals(permKey) ||
+              Authorization.WRITE.name().equals(permKey)) {
+            strList = perm.getValue()
+            if (strList && strList.contains(role)) {
+              return true
+            }
+          } else if (Authorization.READ.name().equals(permKey)) {
+            strList = perm.getValue()
+            if (strList && strList.contains(role)) {
+              value = false
+            }
+          }
+        }
+      }
+    }
+    return value
   }
 
   private void recordPipelineFailure(Map pipeline, String errorMessage) {

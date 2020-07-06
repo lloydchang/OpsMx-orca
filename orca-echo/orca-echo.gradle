@@ -26,8 +26,13 @@ dependencies {
   implementation("io.spinnaker.kork:kork-core")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("javax.validation:validation-api")
+<<<<<<< HEAD
   implementation("io.spinnaker.fiat:fiat-core:$fiatVersion")
   implementation("io.spinnaker.fiat:fiat-api:$fiatVersion")
+=======
+  implementation("com.netflix.spinnaker.fiat:fiat-core:$fiatVersion")
+  implementation("com.netflix.spinnaker.fiat:fiat-api:$fiatVersion")
+>>>>>>> 807091d04 (Added manual judgment feature.)
 
   testImplementation("com.squareup.retrofit:retrofit-mock")
 }
