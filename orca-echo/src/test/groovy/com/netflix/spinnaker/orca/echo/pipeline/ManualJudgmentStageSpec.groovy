@@ -126,6 +126,8 @@ class ManualJudgmentStageSpec extends Specification {
       notifications: [
         new Notification(type: "email", address: "test@netflix.com", when: [ notificationState ])
       ],
+      isAuthorized: true,
+      isTest: true,
       judgmentStatus: judgmentStatus
     ]))
 
