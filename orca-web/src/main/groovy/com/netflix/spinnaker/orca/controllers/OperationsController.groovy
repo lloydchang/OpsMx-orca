@@ -211,23 +211,26 @@ class OperationsController {
       Application application = front50Service.get(applicationName)
       if (application) {
         def username = AuthenticatedRequest.getSpinnakerUser().orElse("")
-        def permissions = objectMapper.convertValue(application.getPermission().permissions.permissions,
-            new TypeReference<Map<String, Object>>() {})
-        UserPermission.View permission = fiatPermissionEvaluator.getPermission(username);
-        if (permission == null) { // Should never happen?
-          return;
-        }
-        // User has to have all the pipeline roles.
-        Set<Role.View> roleView = permission.getRoles()
-        def userRoles = []
-        roleView.each { it -> userRoles.add(it.getName().trim()) }
-        def stageList = pipeline.stages
-        def stageRoles = []
-        stageList.each { item ->
-          stageRoles = item.selectedStageRoles
-          item.isAuthorized = checkAuthorizedGroups(userRoles, stageRoles, permissions)
-          item.stageRoles = stageRoles
-          item.permissions = permissions
+        if (application.getPermission().permissions != null &&
+            application.getPermission().permissions.permissions != null) {
+          def permissions = objectMapper.convertValue(application.getPermission().permissions.permissions,
+              new TypeReference<Map<String, Object>>() {})
+          UserPermission.View permission = fiatPermissionEvaluator.getPermission(username);
+          if (permission == null) { // Should never happen?
+            return;
+          }
+          // User has to have all the pipeline roles.
+          Set<Role.View> roleView = permission.getRoles()
+          def userRoles = []
+          roleView.each { it -> userRoles.add(it.getName().trim()) }
+          def stageList = pipeline.stages
+          def stageRoles = []
+          stageList.each { item ->
+            stageRoles = item.selectedStageRoles
+            item.isAuthorized = checkAuthorizedGroups(userRoles, stageRoles, permissions)
+            item.stageRoles = stageRoles
+            item.permissions = permissions
+          }
         }
       }
     }
