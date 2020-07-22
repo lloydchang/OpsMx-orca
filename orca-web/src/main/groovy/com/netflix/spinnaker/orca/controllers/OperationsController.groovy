@@ -211,7 +211,8 @@ class OperationsController {
       Application application = front50Service.get(applicationName)
       if (application) {
         def username = AuthenticatedRequest.getSpinnakerUser().orElse("")
-        if (application.getPermission().permissions && application.getPermission().permissions.permissions) {
+        if (application.getPermission().permissions != null &&
+            application.getPermission().permissions.permissions != null) {
           def permissions = objectMapper.convertValue(application.getPermission().permissions.permissions,
               new TypeReference<Map<String, Object>>() {})
           UserPermission.View permission = fiatPermissionEvaluator.getPermission(username);
