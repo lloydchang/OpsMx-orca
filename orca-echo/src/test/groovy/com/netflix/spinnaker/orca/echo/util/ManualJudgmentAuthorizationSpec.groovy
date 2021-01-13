@@ -16,38 +16,26 @@
 
 package com.netflix.spinnaker.orca.echo.util
 
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
-import com.netflix.spinnaker.fiat.shared.FiatStatus
 import spock.lang.Specification
-import spock.lang.Subject
-import spock.lang.Unroll
 
-class ManualJudgmentAuthorizationSpec extends Specification {
-  def fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
-  def fiatStatus = Mock(FiatStatus)
+class ManualJudgmentAuthzGroupsUtilSpec extends Specification {
 
-  @Subject
-  def manualJudgmentAuthorization = new ManualJudgmentAuthorization(
-      Optional.of(fiatPermissionEvaluator),
-      fiatStatus
-  )
 
-  @Unroll
-  void 'should determine authorization based on intersection of userRoles and stageRoles/permissions'() {
+  void 'should return the result based on userRoles, stageRoles and permissions'() {
+
     when:
-    def result = manualJudgmentAuthorization.isAuthorized(requiredJudgmentRoles, currentUserRoles)
+    def result = ManualJudgmentAuthzGroupsUtil.checkAuthorizedGroups(userRoles,stageRoles,permissions)
 
     then:
-    result == isAuthorized
+    result == output
 
     where:
-    requiredJudgmentRoles | currentUserRoles || isAuthorized
-    ['foo', 'blaz']       | ['foo', 'baz']   || true
-    []                    | ['foo', 'baz']   || true
-    []                    | []               || true
-    ['foo']               | ['foo']          || true
-    ['foo']               | []               || false
-    ['foo']               | null             || false
-    null                  | null             || true
+    userRoles           |    stageRoles       |     permissions                                                       |    output
+    ['foo','baz']       |   ['foo']           |    ["WRITE": ["foo"],"READ": ["foo","baz"], "EXECUTE": ["foo"]]       |    true
+    ['foo','baz']       |   []                |    ["WRITE": ["foo"],"READ": ["foo","baz"], "EXECUTE": ["foo"]]       |    true
+    []                  |   ['foo']           |    ["WRITE": ["foo"],"READ": ["foo","baz"], "EXECUTE": ["foo"]]       |    false
+    ['foo','baz']       |   ['baz']           |    ["WRITE": ["foo"],"READ": ["foo","baz"], "EXECUTE": ["foo"]]       |    false
+    ['foo','baz']       |   []                |    ["":""]                                                            |    true
+    ['foo','baz','bar'] |   ['baz']           |    ["WRITE": ["bar"],"READ": ["bar"], "EXECUTE": ["bar"]]             |    false
   }
 }
