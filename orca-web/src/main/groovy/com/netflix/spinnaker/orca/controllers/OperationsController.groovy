@@ -168,7 +168,10 @@ class OperationsController {
   private Map<String, Object> orchestratePipeline(Map pipeline) {
     long startTime = System.currentTimeMillis()
     def request = objectMapper.writeValueAsString(pipeline)
+<<<<<<< HEAD
 
+=======
+>>>>>>> 754e87011 (Added manual judgment feature.)
     Exception pipelineError = null
     try {
       pipeline = parseAndValidatePipeline(pipeline)
