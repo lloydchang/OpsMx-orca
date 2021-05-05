@@ -1,0 +1,150 @@
+
+
+Step 1:
+        a) Create AWS-IAM Role:
+                        Attach Policies: 
+				SpinEC2PassRole
+				AWSLambdaBasicExecutionRole-3ec3b99f-4258-4f3b-96ee-18f353a637c9
+				SpinnakerAssumeRolePolicy
+			        AWSLambdaFullAccess			       
+			        AdministratorAccess	
+ 			        AWSCodeDeployRoleForLambda
+			        AWSLambdaExecute
+				AWSLambdaBasicExecutionRole
+
+
+
+        b)  Trust RelationShip for the Role:
+				    {
+  				    "Sid": "2",
+   				    "Effect": "Allow",
+   			  	    "Principal": {
+    				       "Service": "lambda.amazonaws.com"
+                                     },
+     				    "Action": "sts:AssumeRole"
+                                    }
+Step 2: 
+       Configuring an Amazon SQS Dead-Letter Queue
+     
+        AWS Console:
+                    search For SQS
+                        Create New Queue
+                              name:
+                              select : standard Queue
+                              configure queue
+                              click on Create 
+               After creation of select the selected Queue then we get the "SQS ARN"
+
+Now can create function from spinnaker UI
+
+Step 3:
+      we can create Spinnaker pipeline with lambda functions
+                            1)Lambda - Get Functions
+                            2)Lambda - Update Function Code
+			    3)Lambda - Update Function Configuration
+       1)Lambda - Get Functions:
+          
+
+       
+       2)Lambda - Update Function Code:
+       
+
+
+
+       3)Lambda - Update Function Configuration:
+        
+ 
+
+
+
+      
+       
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---->> upload it as key.zip
+
+from future import print_function
+
+
+
+---->> Policies added to spinEC2Role
+
+---->> updated trustyrelation ship 
+
+{ "Version": "2012-10-17", "Statement": [ { "Sid": "1", "Effect": "Allow", "Principal": { "AWS": "arn:aws:iam::732813442182:user/spinEC2" }, "Action": "sts:AssumeRole" }, { "Sid": "2", "Effect": "Allow", "Principal": { "Service": "lambda.amazonaws.com" }, "Action": "sts:AssumeRole" } ] }
+
+---->> Created Dead Config of Target ARN without fifo.
+
+
+arn:aws:sqs:us-east-1:732813442182:forspinnaker (used)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1.
+
+clouddriver-local.yml
+setting.js
+orca-local.yml
+
+
+2.
+
+create role
+create bucket
+create 
+createnfunction from ui
+    --- Basic infomation:
+           Account:
+           Region:
+           FunctionName:
+          Runtime:
+         S3 Bucket:
+         S3 key:
+        Handler:
+        Publish:
+
+ ----Role ARN:
+    
+  ---Tag:
+      foo 000
+----Debugging and error Handling:
+     Target ARN:  To this 
