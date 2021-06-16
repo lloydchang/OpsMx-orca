@@ -365,6 +365,7 @@ class OperationsController {
 
   @RequestMapping(value = "/ops", method = RequestMethod.POST)
   Map<String, String> ops(@RequestBody List<Map> input) {
+    log.info("first ops method invoked ")
     def execution = [application: null, name: null, stages: input]
     parsePipelineTrigger(executionRepository, buildService, execution, true)
     startTask(execution)
@@ -372,6 +373,7 @@ class OperationsController {
 
   @RequestMapping(value = "/ops", consumes = "application/context+json", method = RequestMethod.POST)
   Map<String, String> ops(@RequestBody Map input) {
+    log.info("second ops method invoked ")
     def execution = [application: input.application, name: input.description, stages: input.job, trigger: input.trigger ?: [:]]
     parsePipelineTrigger(executionRepository, buildService, execution, true)
     startTask(execution)
