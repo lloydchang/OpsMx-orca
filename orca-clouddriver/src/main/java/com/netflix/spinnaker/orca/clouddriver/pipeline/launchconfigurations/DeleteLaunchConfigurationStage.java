@@ -24,6 +24,8 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.launchconfigurations.DeleteL
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.validation.constraints.NotNull;
+
+import com.netflix.spinnaker.orca.front50.tasks.DeletePipelineTask;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
@@ -33,7 +35,8 @@ public class DeleteLaunchConfigurationStage implements StageDefinitionBuilder {
   public void taskGraph(@Nonnull StageExecution stage, @Nonnull @NotNull TaskNode.Builder builder) {
     builder
         .withTask("deleteLaunchConfiguration", DeleteLaunchConfigurationTask.class)
-        .withTask("monitorDeleteSnapshot", MonitorKatoTask.class);
+        .withTask("monitorDeleteSnapshot", MonitorKatoTask.class)
+        .withTask("deletePipeline", DeletePipelineTask.class);
   }
 
   @Data
