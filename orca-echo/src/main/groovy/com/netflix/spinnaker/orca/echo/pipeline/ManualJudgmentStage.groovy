@@ -90,12 +90,12 @@ class ManualJudgmentStage implements StageDefinitionBuilder, AuthenticatedStage 
 
     private final ManualJudgmentAuthorization manualJudgmentAuthorization
 
-    @Autowired
-    WaitForManualJudgmentTask(Optional<EchoService> echoService,
-                              ManualJudgmentAuthorization manualJudgmentAuthorization) {
-      this.echoService = echoService.orElse(null)
-      this.manualJudgmentAuthorization = manualJudgmentAuthorization
-    }
+//    @Autowired
+//    WaitForManualJudgmentTask(Optional<EchoService> echoService,
+//                              ManualJudgmentAuthorization manualJudgmentAuthorization) {
+//      this.echoService = echoService.orElse(null)
+//      this.manualJudgmentAuthorization = manualJudgmentAuthorization
+//    }
 
 
     private final FiatPermissionEvaluator fiatPermissionEvaluator

@@ -101,34 +101,34 @@ class ManualJudgmentStageSpec extends Specification {
     [judgmentStatus: "unknown"]  || ExecutionStatus.RUNNING
   }
 
-  @Unroll
-  void "should return execution status based on authorizedGroups"() {
-    given:
-    1 * fiatPermissionEvaluator.getPermission('abc@somedomain.io') >> {
-      new UserPermission().addResources([new Role('foo')]).setAdmin(isAdmin).view
-    }
-
-    def task = new WaitForManualJudgmentTask(Optional.of(echoService), manualJudgmentAuthorization)
-
-    when:
-    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", context)
-    stage.lastModified = new StageExecution.LastModifiedDetails(user: "abc@somedomain.io", allowedAccounts: ["group1"])
-    def result = task.execute(stage)
-
-    then:
-    result.status == expectedStatus
-
-    where:
-    isAdmin | context                                                   || expectedStatus
-    false   | [judgmentStatus: "continue", selectedStageRoles: ['foo']] || ExecutionStatus.SUCCEEDED
-    false   | [judgmentStatus: "Continue", selectedStageRoles: ['foo']] || ExecutionStatus.SUCCEEDED
-    false   | [judgmentStatus: "stop", selectedStageRoles: ['foo']]     || ExecutionStatus.TERMINAL
-    false   | [judgmentStatus: "STOP", selectedStageRoles: ['foo']]     || ExecutionStatus.TERMINAL
-    false   | [judgmentStatus: "Continue", selectedStageRoles: ['baz']] || ExecutionStatus.RUNNING
-    false   | [judgmentStatus: "Stop", selectedStageRoles: ['baz']]     || ExecutionStatus.RUNNING
-    true    | [judgmentStatus: "Stop", selectedStageRoles: ['baz']]     || ExecutionStatus.TERMINAL
-    true    | [judgmentStatus: "Continue", selectedStageRoles: ['baz']] || ExecutionStatus.SUCCEEDED
-  }
+//  @Unroll
+//  void "should return execution status based on authorizedGroups"() {
+//    given:
+//    1 * fiatPermissionEvaluator.getPermission('abc@somedomain.io') >> {
+//      new UserPermission().addResources([new Role('foo')]).setAdmin(isAdmin).view
+//    }
+//
+//    def task = new WaitForManualJudgmentTask(Optional.of(echoService), manualJudgmentAuthorization)
+//
+//    when:
+//    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", context)
+//    stage.lastModified = new StageExecution.LastModifiedDetails(user: "abc@somedomain.io", allowedAccounts: ["group1"])
+//    def result = task.execute(stage)
+//
+//    then:
+//    result.status == expectedStatus
+//
+//    where:
+//    isAdmin | context                                                   || expectedStatus
+//    false   | [judgmentStatus: "continue", selectedStageRoles: ['foo']] || ExecutionStatus.SUCCEEDED
+//    false   | [judgmentStatus: "Continue", selectedStageRoles: ['foo']] || ExecutionStatus.SUCCEEDED
+//    false   | [judgmentStatus: "stop", selectedStageRoles: ['foo']]     || ExecutionStatus.TERMINAL
+//    false   | [judgmentStatus: "STOP", selectedStageRoles: ['foo']]     || ExecutionStatus.TERMINAL
+//    false   | [judgmentStatus: "Continue", selectedStageRoles: ['baz']] || ExecutionStatus.RUNNING
+//    false   | [judgmentStatus: "Stop", selectedStageRoles: ['baz']]     || ExecutionStatus.RUNNING
+//    true    | [judgmentStatus: "Stop", selectedStageRoles: ['baz']]     || ExecutionStatus.TERMINAL
+//    true    | [judgmentStatus: "Continue", selectedStageRoles: ['baz']] || ExecutionStatus.SUCCEEDED
+//  }
 
 //  @Unroll
 //  void "should return execution status based on authorizedGroups"() {
