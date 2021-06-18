@@ -28,18 +28,18 @@ import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
-<<<<<<< HEAD
+
 import com.netflix.spinnaker.orca.echo.util.ManualJudgmentAuthorization
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 
-=======
+
 import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.orca.echo.util.ManualJudgmentAuthzGroupsUtil
 import com.netflix.spinnaker.security.AuthenticatedRequest
->>>>>>> 754e87011 (Added manual judgment feature.)
+
 import javax.annotation.Nonnull
 import java.util.concurrent.TimeUnit
 import com.google.common.annotations.VisibleForTesting
@@ -87,7 +87,7 @@ class ManualJudgmentStage implements StageDefinitionBuilder, AuthenticatedStage 
     final long timeout = TimeUnit.DAYS.toMillis(3)
 
     private final EchoService echoService
-<<<<<<< HEAD
+
     private final ManualJudgmentAuthorization manualJudgmentAuthorization
 
     @Autowired
@@ -95,7 +95,8 @@ class ManualJudgmentStage implements StageDefinitionBuilder, AuthenticatedStage 
                               ManualJudgmentAuthorization manualJudgmentAuthorization) {
       this.echoService = echoService.orElse(null)
       this.manualJudgmentAuthorization = manualJudgmentAuthorization
-=======
+    }
+
 
     private final FiatPermissionEvaluator fiatPermissionEvaluator
 
@@ -114,14 +115,12 @@ class ManualJudgmentStage implements StageDefinitionBuilder, AuthenticatedStage 
       this.fiatStatus = fiatStatus.orElse(null)
       this.objectMapper = objectMapper.orElse(null)
       this.manualJudgmentAuthzGroupsUtil = manualJudgmentAuthzGroupsUtil.orElse(null)
->>>>>>> 754e87011 (Added manual judgment feature.)
+
     }
 
     @Override
     TaskResult execute(StageExecution stage) {
       StageData stageData = stage.mapTo(StageData)
-<<<<<<< HEAD
-=======
       def username = AuthenticatedRequest.getSpinnakerUser().orElse(stage.lastModified ? stage.lastModified.user : "")
       boolean fiatEnabled = fiatStatus ? fiatStatus.isEnabled() : false
       boolean isAuthorized = false
@@ -133,24 +132,21 @@ class ManualJudgmentStage implements StageDefinitionBuilder, AuthenticatedStage 
           appPermissions = getApplicationPermissions(stage)
         }
       }
->>>>>>> 754e87011 (Added manual judgment feature.)
+
       String notificationState
       ExecutionStatus executionStatus
 
       switch (stageData.state) {
         case StageData.State.CONTINUE:
-<<<<<<< HEAD
-=======
+
           isAuthorized = !fiatEnabled || checkManualJudgmentAuthorizedGroups(stageRoles, appPermissions, username)
->>>>>>> 754e87011 (Added manual judgment feature.)
+
           notificationState = "manualJudgmentContinue"
           executionStatus = ExecutionStatus.SUCCEEDED
           break
         case StageData.State.STOP:
-<<<<<<< HEAD
-=======
+
           isAuthorized = !fiatEnabled || checkManualJudgmentAuthorizedGroups(stageRoles, appPermissions, username)
->>>>>>> 754e87011 (Added manual judgment feature.)
           notificationState = "manualJudgmentStop"
           executionStatus = ExecutionStatus.TERMINAL
           break
@@ -159,7 +155,7 @@ class ManualJudgmentStage implements StageDefinitionBuilder, AuthenticatedStage 
           executionStatus = ExecutionStatus.RUNNING
           break
       }
-<<<<<<< HEAD
+
 
       if (stageData.state != StageData.State.UNKNOWN && !stageData.getRequiredJudgmentRoles().isEmpty()) {
         // only check authorization _if_ a judgment has been made and required judgment roles have been specified
@@ -170,15 +166,16 @@ class ManualJudgmentStage implements StageDefinitionBuilder, AuthenticatedStage 
           executionStatus = ExecutionStatus.RUNNING
           stage.context.put("judgmentStatus", "")
         }
-=======
-      if (!isAuthorized) {
-        notificationState = "manualJudgment"
-        executionStatus = ExecutionStatus.RUNNING
-        stage.context.put("judgmentStatus", "")
-      }
-      Map outputs = processNotifications(stage, stageData, notificationState)
 
-      return TaskResult.builder(executionStatus).context(outputs).build()
+        if (!isAuthorized) {
+          notificationState = "manualJudgment"
+          executionStatus = ExecutionStatus.RUNNING
+          stage.context.put("judgmentStatus", "")
+        }
+        Map outputs = processNotifications(stage, stageData, notificationState)
+
+        return TaskResult.builder(executionStatus).context(outputs).build()
+      }
     }
 
     private Map<String, Object> getApplicationPermissions(StageExecution stage) {
@@ -209,17 +206,15 @@ class ManualJudgmentStage implements StageDefinitionBuilder, AuthenticatedStage 
         return ManualJudgmentAuthzGroupsUtil.checkAuthorizedGroups(userRoles, stageRoles, permissions)
       } else {
         return false
->>>>>>> 754e87011 (Added manual judgment feature.)
+
       }
 
-<<<<<<< HEAD
+
       Map outputs = processNotifications(stage, stageData, notificationState)
 
       return TaskResult.builder(executionStatus).context(outputs).build()
     }
 
-=======
->>>>>>> 754e87011 (Added manual judgment feature.)
     Map processNotifications(StageExecution stage, StageData stageData, String notificationState) {
       if (echoService) {
         // sendNotifications will be true if using the new scheme for configuration notifications.
