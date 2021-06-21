@@ -36,9 +36,7 @@ public class DeleteLaunchConfigurationStage implements StageDefinitionBuilder {
 
     builder
         .withTask("deleteLaunchConfiguration", DeleteLaunchConfigurationTask.class)
-        .withTask("monitorDeleteSnapshot", MonitorKatoTask.class)
-        .withTask("deletePipeline", DeletePipelineTask.class);
-
+        .withTask("monitorDeleteSnapshot", MonitorKatoTask.class);
   }
 
   @Data
