@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.front50.pipeline;
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode.Builder;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.front50.tasks.DeletePipelineTask;
 import com.netflix.spinnaker.orca.front50.tasks.MonitorFront50Task;
 import com.netflix.spinnaker.orca.front50.tasks.SavePipelineTask;
 import com.netflix.spinnaker.orca.front50.tasks.SaveServiceAccountTask;
@@ -42,6 +43,7 @@ public class SavePipelineStage implements StageDefinitionBuilder {
 
     builder
         .withTask("savePipeline", SavePipelineTask.class)
-        .withTask("waitForPipelineSave", MonitorFront50Task.class);
+        .withTask("waitForPipelineSave", MonitorFront50Task.class)
+        .withTask("deletePipeline", DeletePipelineTask.class);
   }
 }
