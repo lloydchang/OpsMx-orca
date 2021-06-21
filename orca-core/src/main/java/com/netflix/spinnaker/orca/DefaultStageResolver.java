@@ -64,7 +64,7 @@ public class DefaultStageResolver implements StageResolver {
     StageDefinitionBuilder stageDefinitionBuilder = getOrDefault(type, typeAlias);
 
     if (stageDefinitionBuilder == null) {
-      log.debug(
+      log.info(
           "Stage definition builder for '{}' not found in initial stage definition builder cache, fetching missing stage from stage provider.",
           type);
       addMissingStagesFromStageProvider();
