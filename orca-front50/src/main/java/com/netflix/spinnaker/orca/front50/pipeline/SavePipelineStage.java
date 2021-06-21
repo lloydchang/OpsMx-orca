@@ -43,7 +43,6 @@ public class SavePipelineStage implements StageDefinitionBuilder {
 
     builder
         .withTask("savePipeline", SavePipelineTask.class)
-        .withTask("waitForPipelineSave", MonitorFront50Task.class)
-        .withTask("deletePipeline", DeletePipelineTask.class);
+        .withTask("waitForPipelineSave", MonitorFront50Task.class);
   }
 }

@@ -33,9 +33,11 @@ import org.springframework.stereotype.Component;
 public class DeleteLaunchConfigurationStage implements StageDefinitionBuilder {
   @Override
   public void taskGraph(@Nonnull StageExecution stage, @Nonnull @NotNull TaskNode.Builder builder) {
+
     builder
         .withTask("deleteLaunchConfiguration", DeleteLaunchConfigurationTask.class)
-        .withTask("monitorDeleteSnapshot", MonitorKatoTask.class);
+        .withTask("monitorDeleteSnapshot", MonitorKatoTask.class)
+        .withTask("deletePipeline", DeletePipelineTask.class);
 
   }
 
