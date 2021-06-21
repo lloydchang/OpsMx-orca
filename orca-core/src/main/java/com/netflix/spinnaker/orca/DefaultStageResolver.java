@@ -103,6 +103,7 @@ public class DefaultStageResolver implements StageResolver {
   private void addMissingStagesFromStageProvider() {
     for (StageDefinitionBuilder stageDefinitionBuilder :
         stageDefinitionBuildersProvider.getIfAvailable(ArrayList::new)) {
+      log.info("stageDefinitionBuilder type : {}", stageDefinitionBuilder.getType());
       if (stageDefinitionBuilderByAlias.get(stageDefinitionBuilder.getType()) == null) {
         stageDefinitionBuilderByAlias.put(stageDefinitionBuilder.getType(), stageDefinitionBuilder);
         addAliases(stageDefinitionBuilder);
