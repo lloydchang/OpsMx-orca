@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.front50.PipelineModelMutator;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +37,7 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 @Slf4j
-public class DeletePipelineTask implements RetryableTask {
+public class DeletePipelineTask implements CloudProviderAware, RetryableTask {
 
   private final Front50Service front50Service;
   private final List<PipelineModelMutator> pipelineModelMutators;
