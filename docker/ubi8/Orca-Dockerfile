@@ -11,5 +11,6 @@ RUN yum -y install java-11-openjdk-headless.x86_64 wget vim curl net-tools nettl
 RUN yum -y update
 RUN useradd spinnaker
 RUN mkdir -p /opt/orca/plugins
+RUN chown -R spinnaker:spinnaker /opt/
 USER spinnaker
 CMD ["/opt/orca/bin/orca"]
