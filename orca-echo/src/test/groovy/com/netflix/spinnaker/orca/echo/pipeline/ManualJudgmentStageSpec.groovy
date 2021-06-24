@@ -16,10 +16,6 @@
 
 package com.netflix.spinnaker.orca.echo.pipeline
 
-<<<<<<< HEAD
-=======
-import com.fasterxml.jackson.databind.ObjectMapper
->>>>>>> 754e87011 (Added manual judgment feature.)
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
@@ -27,13 +23,7 @@ import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.echo.EchoService
-<<<<<<< HEAD
 import com.netflix.spinnaker.orca.echo.util.ManualJudgmentAuthorization
-=======
-import com.netflix.spinnaker.orca.echo.util.ManualJudgmentAuthzGroupsUtil
-import com.netflix.spinnaker.orca.front50.Front50Service
-import com.netflix.spinnaker.orca.front50.model.Application
->>>>>>> 754e87011 (Added manual judgment feature.)
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
@@ -42,58 +32,28 @@ import static com.netflix.spinnaker.orca.echo.pipeline.ManualJudgmentStage.Notif
 import static com.netflix.spinnaker.orca.echo.pipeline.ManualJudgmentStage.WaitForManualJudgmentTask
 
 class ManualJudgmentStageSpec extends Specification {
-<<<<<<< HEAD
+
   EchoService echoService = Mock(EchoService)
 
   FiatPermissionEvaluator fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
-=======
-
-  EchoService echoService = Mock(EchoService)
-
-  Front50Service front50Service = Mock(Front50Service)
-
-  FiatPermissionEvaluator fpe = Mock(FiatPermissionEvaluator)
->>>>>>> 754e87011 (Added manual judgment feature.)
 
   FiatStatus fiatStatus = Mock() {
     _ * isEnabled() >> true
   }
 
-<<<<<<< HEAD
   ManualJudgmentAuthorization manualJudgmentAuthorization = new ManualJudgmentAuthorization(
       Optional.of(fiatPermissionEvaluator),
       fiatStatus
   )
-=======
-  ManualJudgmentAuthzGroupsUtil manualJudgmentAuthzGroupsUtil = new ManualJudgmentAuthzGroupsUtil(Optional.of(front50Service))
-
-  ObjectMapper objectMapper = new ObjectMapper()
-
-  def config = [
-      application: [
-          "name"          : "orca",
-          "owner"         : "owner",
-          "permissions"   : [WRITE: ["foo"], READ: ["foo","baz"], EXECUTE: ["foo"]]
-      ],
-      user       : "testUser"
-  ]
->>>>>>> 754e87011 (Added manual judgment feature.)
-
   @Unroll
   void "should return execution status based on judgmentStatus"() {
     given:
-<<<<<<< HEAD
     def task = new WaitForManualJudgmentTask(Optional.of(echoService), manualJudgmentAuthorization)
-=======
-    def task = new WaitForManualJudgmentTask(Optional.of(echoService), Optional.of(fpe), Optional.of(fiatStatus),
-        Optional.of(objectMapper), Optional.of(manualJudgmentAuthzGroupsUtil))
->>>>>>> 754e87011 (Added manual judgment feature.)
 
     when:
     def result = task.execute(new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", context))
 
     then:
-    1 * fiatStatus.isEnabled() >> { return false }
     result.status == expectedStatus
 
     where:
@@ -135,43 +95,10 @@ class ManualJudgmentStageSpec extends Specification {
     true    | [judgmentStatus: "Continue", selectedStageRoles: ['baz']] || ExecutionStatus.SUCCEEDED
   }
 
-  @Unroll
-  void "should return execution status based on authorizedGroups"() {
-    given:
-    1 * fpe.getPermission('abc@somedomain.io') >> {
-      new UserPermission().addResources([new Role('foo'), new Role('baz')]).view
-    }
-    1 * front50Service.get("orca") >> new Application(config.application)
-
-    def task = new WaitForManualJudgmentTask(Optional.of(echoService), Optional.of(fpe), Optional.of(fiatStatus),
-        Optional.of(objectMapper), Optional.of(manualJudgmentAuthzGroupsUtil))
-
-    when:
-    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", context)
-    stage.lastModified = new StageExecution.LastModifiedDetails(user: "abc@somedomain.io", allowedAccounts: ["group1"])
-    def result = task.execute(stage)
-
-    then:
-    result.status == expectedStatus
-
-    where:
-    context                      || expectedStatus
-    [judgmentStatus: "continue", selectedStageRoles: ['foo']] || ExecutionStatus.SUCCEEDED
-    [judgmentStatus: "Continue", selectedStageRoles: ['foo']] || ExecutionStatus.SUCCEEDED
-    [judgmentStatus: "stop", selectedStageRoles: ['foo']] || ExecutionStatus.TERMINAL
-    [judgmentStatus: "STOP", selectedStageRoles: ['foo']] || ExecutionStatus.TERMINAL
-    [judgmentStatus: "Continue", selectedStageRoles: ['baz']] || ExecutionStatus.RUNNING
-    [judgmentStatus: "Stop", selectedStageRoles: ['baz']] || ExecutionStatus.RUNNING
-  }
-
   void "should only send notifications for supported types"() {
     given:
-<<<<<<< HEAD
+
     def task = new WaitForManualJudgmentTask(Optional.of(echoService), manualJudgmentAuthorization)
-=======
-    def task = new WaitForManualJudgmentTask(Optional.of(echoService), Optional.of(fpe), Optional.of(fiatStatus),
-        Optional.of(objectMapper), Optional.of(manualJudgmentAuthzGroupsUtil))
->>>>>>> 754e87011 (Added manual judgment feature.)
 
     when:
     def result = task.execute(new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", [notifications: [
@@ -192,12 +119,7 @@ class ManualJudgmentStageSpec extends Specification {
   @Unroll
   void "if deprecated notification configuration is in use, only send notifications for awaiting judgment state"() {
     given:
-<<<<<<< HEAD
     def task = new WaitForManualJudgmentTask(Optional.of(echoService), manualJudgmentAuthorization)
-=======
-    def task = new WaitForManualJudgmentTask(Optional.of(echoService), Optional.of(fpe), Optional.of(fiatStatus),
-        Optional.of(objectMapper), Optional.of(manualJudgmentAuthzGroupsUtil))
->>>>>>> 754e87011 (Added manual judgment feature.)
 
     when:
     def result = task.execute(new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", [
@@ -209,7 +131,6 @@ class ManualJudgmentStageSpec extends Specification {
     ]))
 
     then:
-    1 * fiatStatus.isEnabled() >> { return false }
     result.status == executionStatus
     if (sent) result.context.notifications?.getAt(0)?.lastNotifiedByNotificationState?.containsKey(notificationState)
 
@@ -279,12 +200,7 @@ class ManualJudgmentStageSpec extends Specification {
   @Unroll
   void "should retain unknown fields in the notification context"() {
     given:
-<<<<<<< HEAD
     def task = new WaitForManualJudgmentTask(Optional.of(echoService), manualJudgmentAuthorization)
-=======
-    def task = new WaitForManualJudgmentTask(Optional.of(echoService), Optional.of(fpe), Optional.of(fiatStatus),
-        Optional.of(objectMapper), Optional.of(manualJudgmentAuthzGroupsUtil))
->>>>>>> 754e87011 (Added manual judgment feature.)
 
     def slackNotification = new Notification(type: "slack")
     slackNotification.setOther("customMessage", "hello slack")
