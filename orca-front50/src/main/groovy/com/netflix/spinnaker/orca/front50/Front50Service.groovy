@@ -159,6 +159,9 @@ interface Front50Service {
   @DELETE("/applications/{application}/deliveries/{id}")
   Response deleteDeliveryConfig(@Path("application") String application, @Path("id") String id)
 
+  @DELETE("/pipelines/{app}/{name}")
+  Response deletePipelineConfig(@Path("app") String app, @Path("name") String name, @Query("staleCheck") boolean staleCheck)
+
   static class Project {
     String id
     String name
