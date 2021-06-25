@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.netflix.spinnaker.orca.front50.tasks;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,27 +20,24 @@ import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
-import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.front50.PipelineModelMutator;
-import lombok.extern.slf4j.Slf4j;
+import com.netflix.spinnaker.orca.front50.pipeline.SavePipelineStage;
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import retrofit.client.Response;
 
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-
 @Component
-@Slf4j
 public class DeletePipelineTask implements CloudProviderAware, RetryableTask {
 
-  private final Front50Service front50Service;
-  private final List<PipelineModelMutator> pipelineModelMutators;
-  ObjectMapper objectMapper;
+  private Logger log = LoggerFactory.getLogger(getClass());
 
   @Autowired
   DeletePipelineTask(
@@ -53,19 +49,12 @@ public class DeletePipelineTask implements CloudProviderAware, RetryableTask {
     this.objectMapper = objectMapper;
   }
 
-  @Override
-  public long getBackoffPeriod() {
-    return 1000;
-  }
+  private final Front50Service front50Service;
+  private final List<PipelineModelMutator> pipelineModelMutators;
+  ObjectMapper objectMapper;
 
   @Override
-  public long getTimeout() {
-    return TimeUnit.SECONDS.toMillis(30);
-  }
-
-  @NotNull
-  @Override
-  public TaskResult execute(@NotNull StageExecution stage) {
+  public TaskResult execute(StageExecution stage) {
     if (front50Service == null) {
       throw new UnsupportedOperationException(
           "Front50 is not enabled, no way to delete pipeline. Fix this by setting front50.enabled: true");
@@ -142,19 +131,15 @@ public class DeletePipelineTask implements CloudProviderAware, RetryableTask {
     return TaskResult.builder(status).context(outputs).build();
   }
 
-  private Map<String, Object> fetchExistingPipeline(Map<String, Object> newPipeline) {
-    String applicationName = (String) newPipeline.get("application");
-    String newPipelineID = (String) newPipeline.get("id");
-    if (!StringUtils.isEmpty(newPipelineID)) {
-      return front50Service.getPipelines(applicationName).stream()
-          .filter(m -> m.containsKey("id"))
-          .filter(m -> m.get("id").equals(newPipelineID))
-          .findFirst()
-          .orElse(null);
-    }
-    return null;
+  @Override
+  public long getBackoffPeriod() {
+    return 1000;
   }
 
+  @Override
+  public long getTimeout() {
+    return TimeUnit.SECONDS.toMillis(30);
+  }
 
   private void updateServiceAccount(Map<String, Object> pipeline, String serviceAccount) {
     if (StringUtils.isEmpty(serviceAccount) || !pipeline.containsKey("triggers")) {
@@ -168,7 +153,29 @@ public class DeletePipelineTask implements CloudProviderAware, RetryableTask {
       triggers.forEach(t -> t.remove("runAsUser", serviceAccount));
       return;
     }
+
+    // Managed Service account exists and roles are set; Update triggers
+    triggers.stream()
+        .filter(t -> runAsUserIsNullOrManagedServiceAccount((String) t.get("runAsUser")))
+        .forEach(t -> t.put("runAsUser", serviceAccount));
   }
 
-}
+  private Map<String, Object> fetchExistingPipeline(Map<String, Object> newPipeline) {
+    String applicationName = (String) newPipeline.get("application");
+    String newPipelineID = (String) newPipeline.get("id");
+    if (!StringUtils.isEmpty(newPipelineID)) {
+      return front50Service.getPipelines(applicationName).stream()
+          .filter(m -> m.containsKey("id"))
+          .filter(m -> m.get("id").equals(newPipelineID))
+          .findFirst()
+          .orElse(null);
+    }
+    return null;
+  }
 
+  private boolean runAsUserIsNullOrManagedServiceAccount(String runAsUser) {
+    return runAsUser == null
+        || runAsUser.endsWith(SavePipelineStage.SERVICE_ACCOUNT_SUFFIX)
+        || runAsUser.endsWith(SavePipelineStage.SHARED_SERVICE_ACCOUNT_SUFFIX);
+  }
+}
