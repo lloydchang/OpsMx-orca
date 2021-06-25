@@ -20,10 +20,9 @@ import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.front50.PipelineModelMutator;
-import com.netflix.spinnaker.orca.front50.pipeline.SavePipelineStage;
-import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.StringUtils;
@@ -99,7 +98,9 @@ public class DeletePipelineTask implements CloudProviderAware, RetryableTask {
         .filter(m -> m.supports(pipeline))
         .forEach(m -> m.mutate(pipeline));
 
-    Response response = front50Service.deletePipelineConfig(pipeline.get("application").toString(), pipeline.get("name").toString(), staleCheck);
+    Response response =
+        front50Service.deletePipelineConfig(
+            pipeline.get("application").toString(), pipeline.get("name").toString(), staleCheck);
 
     Map<String, Object> outputs = new HashMap<>();
     outputs.put("notification.type", "deletepipeline");
@@ -153,11 +154,6 @@ public class DeletePipelineTask implements CloudProviderAware, RetryableTask {
       triggers.forEach(t -> t.remove("runAsUser", serviceAccount));
       return;
     }
-
-    // Managed Service account exists and roles are set; Update triggers
-    triggers.stream()
-        .filter(t -> runAsUserIsNullOrManagedServiceAccount((String) t.get("runAsUser")))
-        .forEach(t -> t.put("runAsUser", serviceAccount));
   }
 
   private Map<String, Object> fetchExistingPipeline(Map<String, Object> newPipeline) {
@@ -171,11 +167,5 @@ public class DeletePipelineTask implements CloudProviderAware, RetryableTask {
           .orElse(null);
     }
     return null;
-  }
-
-  private boolean runAsUserIsNullOrManagedServiceAccount(String runAsUser) {
-    return runAsUser == null
-        || runAsUser.endsWith(SavePipelineStage.SERVICE_ACCOUNT_SUFFIX)
-        || runAsUser.endsWith(SavePipelineStage.SHARED_SERVICE_ACCOUNT_SUFFIX);
   }
 }
