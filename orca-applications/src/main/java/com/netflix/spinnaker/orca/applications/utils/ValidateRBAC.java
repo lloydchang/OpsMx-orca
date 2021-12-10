@@ -21,16 +21,20 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.netflix.spinnaker.orca.front50.model.Application;
+import groovy.util.logging.Slf4j;
 import okhttp3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
+@Slf4j
+@Component
 public class ValidateRBAC {
 
   @Value("${policy.opa.url:http://oes-server-svc.oes:8085}")
