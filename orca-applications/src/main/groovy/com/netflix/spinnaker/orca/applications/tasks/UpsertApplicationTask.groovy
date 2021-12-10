@@ -20,16 +20,22 @@ import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.applications.utils.ApplicationNameValidator
+import com.netflix.spinnaker.orca.applications.utils.ValidateRBAC
+import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.front50.tasks.AbstractFront50Task
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Slf4j
 @Component
 @CompileStatic
 class UpsertApplicationTask extends AbstractFront50Task implements ApplicationNameValidator {
+
+  @Autowired
+  ValidateRBAC validateRBAC
 
   @Override
   TaskResult performRequest(Application application) {
@@ -45,6 +51,10 @@ class UpsertApplicationTask extends AbstractFront50Task implements ApplicationNa
       throw new IllegalArgumentException("Invalid application name, errors: ${validationErrors}")
     }
 
+    def rbacValidationErrors = validateRBAC.validatePolicy(application)
+    if (rbacValidationErrors) {
+      throw new IllegalArgumentException("Invalid application name, errors: ${rbacValidationErrors}")
+    }
     def existingApplication = fetchApplication(application.name)
     if (existingApplication) {
       outputs.previousState = existingApplication
