@@ -155,13 +155,13 @@ public class ValidateRBAC {
            });
            permission.add(auth.name(), roles);
          });
+       }  else {
+         allPermisions.forEach(auth -> {
+           permission.add(auth.name(), new  JsonArray());
+         });
        }
-     } else {
-       allPermisions.forEach(auth -> {
-         permission.add(auth.name(), new  JsonArray());
-       });
      }
-      appObject.add("permissions", permission);
+     appObject.add("permissions", permission);
     String applicationStr = gson.toJson(appObject);
     return gson.fromJson(applicationStr, JsonObject.class);
   }
