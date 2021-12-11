@@ -66,6 +66,7 @@ public class ValidateRBAC {
       return null;
     }
     Response httpResponse;
+
     try {
       String finalInput = getOpaInput(application);
       logger.info("Verifying {} with OPA", finalInput);

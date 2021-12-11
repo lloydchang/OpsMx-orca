@@ -51,9 +51,11 @@ class UpsertApplicationTask extends AbstractFront50Task implements ApplicationNa
       throw new IllegalArgumentException("Invalid application name, errors: ${validationErrors}")
     }
 
+    log.info("NEW CHANGES ARE HERE:: (name: ${application.name})")
+
     def rbacValidationErrors = validateRBAC.validatePolicy(application)
     if (rbacValidationErrors) {
-      throw new IllegalArgumentException("Invalid application name, errors: ${rbacValidationErrors}")
+      throw new IllegalArgumentException("Invalid application, errors: ${rbacValidationErrors}")
     }
     def existingApplication = fetchApplication(application.name)
     if (existingApplication) {
