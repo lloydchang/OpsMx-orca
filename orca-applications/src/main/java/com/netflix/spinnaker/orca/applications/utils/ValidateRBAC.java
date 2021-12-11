@@ -144,11 +144,11 @@ public class ValidateRBAC {
      appObject.addProperty("email", application.email);
 
      JsonObject permission = new JsonObject();
+     Set<Authorization> allPermisions = EnumSet.allOf( Authorization.class );
      if (application.getPermission() != null) {
        Permissions permissions = application.getPermission().getPermissions();
        if (permissions != null) {
-         Set<Authorization> allAnimals = EnumSet.allOf( Authorization.class );
-         allAnimals.forEach(auth -> {
+         allPermisions.forEach(auth -> {
            JsonArray roles = new  JsonArray();
            permissions.get(auth).forEach(role -> {
              roles.add(role);
@@ -156,6 +156,10 @@ public class ValidateRBAC {
            permission.add(auth.name(), roles);
          });
        }
+     } else {
+       allPermisions.forEach(auth -> {
+         permission.add(auth.name(), new  JsonArray());
+       });
      }
       appObject.add("permissions", permission);
     String applicationStr = gson.toJson(appObject);
