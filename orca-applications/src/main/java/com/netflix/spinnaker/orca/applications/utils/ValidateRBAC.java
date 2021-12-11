@@ -20,6 +20,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.netflix.spinnaker.fiat.model.Authorization;
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.orca.front50.model.Application;
 import groovy.util.logging.Slf4j;
 import okhttp3.*;
@@ -30,6 +32,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -129,12 +133,32 @@ public class ValidateRBAC {
 
 
   private String getOpaInput(Application application) {
-    JsonObject applicationJson = pipelineToJsonObject(application);
+    JsonObject applicationJson = applicationToJson(application);
     return gson.toJson(addWrapper(addWrapper(applicationJson, "app"), "input"));
   }
 
-  private JsonObject pipelineToJsonObject(Application application) {
-    String applicationStr = gson.toJson(application, Application.class);
+  private JsonObject applicationToJson(Application application) {
+
+     JsonObject appObject = new JsonObject();
+     appObject.addProperty("name", application.name);
+     appObject.addProperty("email", application.email);
+
+     JsonObject permission = new JsonObject();
+     if (application.getPermission() != null) {
+       Permissions permissions = application.getPermission().getPermissions();
+       if (permissions != null) {
+         Set<Authorization> allAnimals = EnumSet.allOf( Authorization.class );
+         allAnimals.forEach(auth -> {
+           JsonArray roles = new  JsonArray();
+           permissions.get(auth).forEach(role -> {
+             roles.add(role);
+           });
+           permission.add(auth.name(), roles);
+         });
+       }
+     }
+      appObject.add("permissions", permission);
+    String applicationStr = gson.toJson(appObject);
     return gson.fromJson(applicationStr, JsonObject.class);
   }
 

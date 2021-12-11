@@ -42,16 +42,10 @@ class UpsertApplicationTask extends AbstractFront50Task implements ApplicationNa
     Map<String, Object> outputs = [:]
     outputs.previousState = [:]
 
-    /*
-     * Upsert application to all global registries.
-     */
-
     def validationErrors = validate(application)
     if (validationErrors) {
       throw new IllegalArgumentException("Invalid application name, errors: ${validationErrors}")
     }
-
-    log.info("NEW CHANGES ARE HERE:: (name: ${application.name})")
 
     def rbacValidationErrors = validateRBAC.validatePolicy(application)
     if (rbacValidationErrors) {
