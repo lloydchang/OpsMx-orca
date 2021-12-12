@@ -168,6 +168,7 @@ public class ValidateRBAC {
      JsonArray jobArray = new JsonArray();
     jobArray.add(jobDetails);
     jobObject.add("job", jobArray);
+    jobObject.addProperty("application", application.name);
 
     String applicationStr = gson.toJson(jobObject);
     return gson.fromJson(applicationStr, JsonObject.class);
