@@ -64,7 +64,7 @@ public class ValidateRBAC {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
-   public String validatePolicy(Application application) {
+   public String validatePolicy(Application application, String type) {
     if (!isOpaEnabled) {
       logger.info("OPA not enabled, returning");
       return null;
@@ -72,33 +72,29 @@ public class ValidateRBAC {
     Response httpResponse;
 
     try {
-      String finalInput = getOpaInput(application);
+      String finalInput = getOpaInput(application, type);
       logger.info("Verifying {} with OPA", finalInput);
 
       RequestBody requestBody = RequestBody.create(JSON, finalInput);
       String opaFinalUrl = String.format("%s/%s", opaUrl.endsWith("/") ? opaUrl.substring(0, opaUrl.length() - 1) : opaUrl, opaPolicyLocation.startsWith("/") ? opaPolicyLocation.substring(1) : opaPolicyLocation);
 
       logger.debug("OPA endpoint : {}", opaFinalUrl);
-      String opaStringResponse;
-
       /* fetch the response from the spawned call execution */
       httpResponse = doPost(opaFinalUrl, requestBody);
-      opaStringResponse = httpResponse.body() != null ? httpResponse.body().string() : "";
+      String opaStringResponse = httpResponse.body() != null ? httpResponse.body().string() : "";
       logger.info("OPA response: {}", opaStringResponse);
-      if (isOpaProxy) {
-        if (httpResponse.code() == 401 ) {
-          JsonObject opaResponse = gson.fromJson(opaStringResponse, JsonObject.class);
-          StringBuilder denyMessage = new StringBuilder();
-          extractDenyMessage(opaResponse, denyMessage);
-          String opaMessage = denyMessage.toString();
-          if (StringUtils.isNotBlank(opaMessage)) {
-            return opaMessage;
-          } else {
-            return "Application doesn't satisfy the policy specified";
-          }
-        } else if (httpResponse.code() != 200 ) {
-          return "Policy validation failed with status code" + httpResponse.code();
+      if (httpResponse.code() == 401 ) {
+        JsonObject opaResponse = gson.fromJson(opaStringResponse, JsonObject.class);
+        StringBuilder denyMessage = new StringBuilder();
+        extractDenyMessage(opaResponse, denyMessage);
+        String opaMessage = denyMessage.toString();
+        if (StringUtils.isNotBlank(opaMessage)) {
+          return opaMessage;
+        } else {
+          return "Application doesn't satisfy the policy specified";
         }
+      } else if (httpResponse.code() != 200 ) {
+        return "Policy validation failed with status code" + httpResponse.code();
       }
 
     } catch (Exception e) {
@@ -132,16 +128,18 @@ public class ValidateRBAC {
   }
 
 
-  private String getOpaInput(Application application) {
-    JsonObject applicationJson = applicationToJson(application);
+  private String getOpaInput(Application application, String type) {
+    JsonObject applicationJson = applicationToJson(application, type);
     return gson.toJson(addWrapper(addWrapper(applicationJson, "new"), "input"));
   }
 
-  private JsonObject applicationToJson(Application application) {
+  private JsonObject applicationToJson(Application application, String type) {
 
-     JsonObject appObject = new JsonObject();
-     appObject.addProperty("application", application.name);
-     appObject.addProperty("email", application.email);
+     JsonObject jobObject = new JsonObject();
+
+     JsonObject appDetailsObject = new JsonObject();
+     appDetailsObject.addProperty("name", application.name);
+     appDetailsObject.addProperty("email", application.email);
 
      JsonObject permission = new JsonObject();
      Set<Authorization> allPermisions = EnumSet.allOf( Authorization.class );
@@ -161,14 +159,23 @@ public class ValidateRBAC {
          });
        }
      }
-     appObject.add("permissions", permission);
-    String applicationStr = gson.toJson(appObject);
+     appDetailsObject.add("permissions", permission);
+
+     JsonObject jobDetails = new JsonObject();
+    jobDetails.addProperty("type", type);
+    jobDetails.add("application", appDetailsObject);
+
+     JsonArray jobArray = new JsonArray();
+    jobArray.add(jobDetails);
+    jobObject.add("job", jobArray);
+
+    String applicationStr = gson.toJson(jobObject);
     return gson.fromJson(applicationStr, JsonObject.class);
   }
 
-  private JsonObject addWrapper(JsonObject pipeline, String wrapper) {
+  private JsonObject addWrapper(JsonObject appObject, String wrapper) {
     JsonObject input = new JsonObject();
-    input.add(wrapper, pipeline);
+    input.add(wrapper, appObject);
     return input;
   }
 

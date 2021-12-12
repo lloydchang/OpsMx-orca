@@ -47,17 +47,21 @@ class UpsertApplicationTask extends AbstractFront50Task implements ApplicationNa
       throw new IllegalArgumentException("Invalid application name, errors: ${validationErrors}")
     }
 
-    def rbacValidationErrors = validateRBAC.validatePolicy(application)
-    if (rbacValidationErrors) {
-      throw new IllegalArgumentException("Invalid application, errors: ${rbacValidationErrors}")
-    }
     def existingApplication = fetchApplication(application.name)
     if (existingApplication) {
+      def rbacValidationErrors = validateRBAC.validatePolicy(application, "updateApp")
+      if (rbacValidationErrors) {
+        throw new IllegalArgumentException("errors: ${rbacValidationErrors}")
+      }
       outputs.previousState = existingApplication
       log.info("Updating application (name: ${application.name})")
       front50Service.update(application.name, application)
     } else {
       log.info("Creating application (name: ${application.name})")
+      def rbacValidationErrors = validateRBAC.validatePolicy(application, "createApp")
+      if (rbacValidationErrors) {
+        throw new IllegalArgumentException("errors: ${rbacValidationErrors}")
+      }
       front50Service.create(application)
       if (application.permission?.permissions == null) {
         application.setPermissions(Permissions.EMPTY)
