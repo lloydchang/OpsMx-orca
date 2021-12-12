@@ -134,13 +134,13 @@ public class ValidateRBAC {
 
   private String getOpaInput(Application application) {
     JsonObject applicationJson = applicationToJson(application);
-    return gson.toJson(addWrapper(addWrapper(applicationJson, "app"), "input"));
+    return gson.toJson(addWrapper(addWrapper(applicationJson, "new"), "input"));
   }
 
   private JsonObject applicationToJson(Application application) {
 
      JsonObject appObject = new JsonObject();
-     appObject.addProperty("name", application.name);
+     appObject.addProperty("application", application.name);
      appObject.addProperty("email", application.email);
 
      JsonObject permission = new JsonObject();
