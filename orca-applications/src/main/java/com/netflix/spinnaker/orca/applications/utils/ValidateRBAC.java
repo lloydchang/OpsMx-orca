@@ -82,7 +82,7 @@ public class ValidateRBAC {
       /* fetch the response from the spawned call execution */
       httpResponse = doPost(opaFinalUrl, requestBody);
       String opaStringResponse = httpResponse.body() != null ? httpResponse.body().string() : "";
-      logger.info("OPA response: {}", opaStringResponse);
+      logger.debug("OPA response: {}", opaStringResponse);
       if (httpResponse.code() == 401 ) {
         JsonObject opaResponse = gson.fromJson(opaStringResponse, JsonObject.class);
         StringBuilder denyMessage = new StringBuilder();
@@ -92,6 +92,12 @@ public class ValidateRBAC {
           return opaMessage;
         } else {
           return "Application doesn't satisfy the policy specified";
+        }
+      } else if (httpResponse.code() == 400) {
+        if (type.equalsIgnoreCase("createApp")) {
+          return "Application create failed " + httpResponse.message();
+        } else {
+          return "Application update failed " + httpResponse.message();
         }
       } else if (httpResponse.code() != 200 ) {
         return "Policy validation failed with status code" + httpResponse.code();

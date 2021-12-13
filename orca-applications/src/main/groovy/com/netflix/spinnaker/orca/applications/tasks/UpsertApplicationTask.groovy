@@ -51,7 +51,7 @@ class UpsertApplicationTask extends AbstractFront50Task implements ApplicationNa
     if (existingApplication) {
       def rbacValidationErrors = validateRBAC.validatePolicy(application, "updateApp")
       if (rbacValidationErrors) {
-        throw new IllegalArgumentException("errors: ${rbacValidationErrors}")
+        throw new IllegalArgumentException("Error(s): ${rbacValidationErrors}")
       }
       outputs.previousState = existingApplication
       log.info("Updating application (name: ${application.name})")
@@ -60,7 +60,7 @@ class UpsertApplicationTask extends AbstractFront50Task implements ApplicationNa
       log.info("Creating application (name: ${application.name})")
       def rbacValidationErrors = validateRBAC.validatePolicy(application, "createApp")
       if (rbacValidationErrors) {
-        throw new IllegalArgumentException("errors: ${rbacValidationErrors}")
+        throw new IllegalArgumentException("Error(s): ${rbacValidationErrors}")
       }
       front50Service.create(application)
       if (application.permission?.permissions == null) {
