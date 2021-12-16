@@ -15,10 +15,10 @@ RUN mkdir -p /opt/orca/plugins
 #custom plugin zip files adding
 ARG CUSTOMPLUGIN_RELEASEVERSION
 ENV CUSTOMPLUGIN_RELEASEVERSION=$CUSTOMPLUGIN_RELEASEVERSION
-RUN wget -O Opsmx.VerificationGatePlugin-VerificationPlugin-v1.0.1-SNAPSHOT.zip -c https://github.com/OpsMx/Pf4jCustomStagePlugin/releases/download/${CUSTOMPLUGIN_RELEASEVERSION}/VerificationPlugin-v1.0.1-SNAPSHOT.zip -P /opt/orca/plugins \
-    && wget -O Opsmx.TestVerificationGatePlugin-TestVerificationPlugin-v1.0.1-SNAPSHOT.zip -c https://github.com/OpsMx/Pf4jCustomStagePlugin/releases/download/${CUSTOMPLUGIN_RELEASEVERSION}/TestVerificationPlugin-v1.0.1-SNAPSHOT.zip -P /opt/orca/plugins \
-    && wget -O Opsmx.PolicyGatePlugin-policyPlugin-v1.0.1-SNAPSHOT.zip -c https://github.com/OpsMx/Pf4jCustomStagePlugin/releases/download/${CUSTOMPLUGIN_RELEASEVERSION}/policyPlugin-v1.0.1-SNAPSHOT.zip -P /opt/orca/plugins \
-    && wget -O Opsmx.VisibilityApprovalPlugin-ApprovalStagePlugin-v1.0.1-SNAPSHOT.zip -c https://github.com/OpsMx/Pf4jCustomStagePlugin/releases/download/${CUSTOMPLUGIN_RELEASEVERSION}/ApprovalStagePlugin-v1.0.1-SNAPSHOT.zip -P /opt/orca/plugins
+RUN wget -O Opsmx.VerificationGatePlugin-VerificationPlugin-v1.0.1-SNAPSHOT.zip -c https://github.com/OpsMx/Customplugins/releases/download/${CUSTOMPLUGIN_RELEASEVERSION}/VerificationPlugin-v1.0.1-SNAPSHOT.zip -P /opt/orca/plugins \
+    && wget -O Opsmx.TestVerificationGatePlugin-TestVerificationPlugin-v1.0.1-SNAPSHOT.zip -c https://github.com/OpsMx/Customplugins/releases/download/${CUSTOMPLUGIN_RELEASEVERSION}/TestVerificationPlugin-v1.0.1-SNAPSHOT.zip -P /opt/orca/plugins \
+    && wget -O Opsmx.PolicyGatePlugin-policyPlugin-v1.0.1-SNAPSHOT.zip -c https://github.com/OpsMx/Customplugins/releases/download/${CUSTOMPLUGIN_RELEASEVERSION}/policyPlugin-v1.0.1-SNAPSHOT.zip -P /opt/orca/plugins \
+    && wget -O Opsmx.VisibilityApprovalPlugin-ApprovalStagePlugin-v1.0.1-SNAPSHOT.zip -c https://github.com/OpsMx/Customplugins/releases/download/${CUSTOMPLUGIN_RELEASEVERSION}/ApprovalStagePlugin-v1.0.1-SNAPSHOT.zip -P /opt/orca/plugins
 RUN mv Opsmx.VerificationGatePlugin-VerificationPlugin-v1.0.1-SNAPSHOT.zip /opt/orca/plugins/ \
     && mv Opsmx.TestVerificationGatePlugin-TestVerificationPlugin-v1.0.1-SNAPSHOT.zip /opt/orca/plugins/ \
     && mv Opsmx.PolicyGatePlugin-policyPlugin-v1.0.1-SNAPSHOT.zip /opt/orca/plugins/ \
