@@ -19,16 +19,24 @@ package com.netflix.spinnaker.orca.echo.pipeline
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.fasterxml.jackson.annotation.JsonIgnore
+<<<<<<< HEAD
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.base.Strings
 import com.netflix.spinnaker.fiat.shared.FiatStatus
+=======
+import com.google.common.collect.ImmutableList
+>>>>>>> f6b935dad (Added Interactive component for manual judgement awaited and callback handler.)
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.echo.util.ManualJudgmentAuthorization
+<<<<<<< HEAD
+=======
+
+>>>>>>> f6b935dad (Added Interactive component for manual judgement awaited and callback handler.)
 import javax.annotation.Nonnull
 import java.util.concurrent.TimeUnit
 import com.google.common.annotations.VisibleForTesting
@@ -39,6 +47,7 @@ import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import static com.netflix.spinnaker.orca.echo.EchoService.Notification.InteractiveActions
 
 @Component
 class ManualJudgmentStage implements StageDefinitionBuilder, AuthenticatedStage {
@@ -65,13 +74,13 @@ class ManualJudgmentStage implements StageDefinitionBuilder, AuthenticatedStage 
     return Optional.of(
         new PipelineExecution.AuthenticationDetails(
             stage.lastModified.user,
-            stage.lastModified.allowedAccounts));
+            stage.lastModified.allowedAccounts))
   }
 
   @Slf4j
   @Component
   @VisibleForTesting
-  public static class WaitForManualJudgmentTask implements OverridableTimeoutRetryableTask {
+  static class WaitForManualJudgmentTask implements OverridableTimeoutRetryableTask {
     final long backoffPeriod = 15000
     final long timeout = TimeUnit.DAYS.toMillis(3)
 
@@ -221,6 +230,7 @@ class ManualJudgmentStage implements StageDefinitionBuilder, AuthenticatedStage 
     }
 
     void notify(EchoService echoService, StageExecution stage, String notificationState) {
+      boolean useInteractiveBot = ("manualJudgment".equalsIgnoreCase(notificationState))
       echoService.create(new EchoService.Notification(
           notificationType: EchoService.Notification.Type.valueOf(type.toUpperCase()),
           to: address ? [address] : (publisherName ? [publisherName] : null),
@@ -242,9 +252,31 @@ class ManualJudgmentStage implements StageDefinitionBuilder, AuthenticatedStage 
               judgmentInputs                   : stage.context.judgmentInputs,
               judgmentInput                    : stage.context.judgmentInput,
               judgedBy                         : stage.context.lastModifiedBy
-          ]
+          ],
+          useInteractiveBot: useInteractiveBot,
+          interactiveActions: useInteractiveBot ? getInteractiveActions(stage) : null
       ))
       lastNotifiedByNotificationState[notificationState] = new Date()
+    }
+
+    private static InteractiveActions getInteractiveActions(StageExecution stage) {
+      new InteractiveActions(
+          callbackServiceId: "orca",
+          callbackMessageId: "${stage.getExecution().getType()}-${stage.getExecution().getId()}-${stage.getId()}",
+          color: '#fcba03',
+          actions: ImmutableList.of(
+              new EchoService.Notification.ButtonAction(
+                  name: "manual-judgement",
+                  label: "Approve",
+                  value: StageData.State.CONTINUE.name()
+              ),
+              new EchoService.Notification.ButtonAction(
+                  name: "manual-judgement",
+                  label: "Reject",
+                  value: StageData.State.STOP.name()
+              )
+          )
+      )
     }
   }
 }

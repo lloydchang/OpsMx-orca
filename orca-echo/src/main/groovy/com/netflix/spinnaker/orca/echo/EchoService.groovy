@@ -17,6 +17,9 @@
 package com.netflix.spinnaker.orca.echo
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
+import groovy.transform.Canonical
 import retrofit.client.Response
 import retrofit.http.Body
 import retrofit.http.GET
@@ -46,6 +49,8 @@ interface EchoService {
 
     Source source
     Map<String, Object> additionalContext = [:]
+    InteractiveActions interactiveActions
+    Boolean useInteractiveBot = false
 
     static class Source {
       String executionType
@@ -70,6 +75,39 @@ interface EchoService {
     static enum Severity {
       NORMAL,
       HIGH
+    }
+    static class InteractiveActions {
+      String callbackServiceId
+      String callbackMessageId
+      String color = '#cccccc'
+      List<InteractiveAction> actions = []
+    }
+
+    @JsonTypeInfo(
+        include = JsonTypeInfo.As.EXISTING_PROPERTY,
+        use = JsonTypeInfo.Id.NAME,
+        property = "type")
+    @JsonSubTypes(
+        @JsonSubTypes.Type(value = ButtonAction.class, name = "button")
+    )
+    abstract static class InteractiveAction {
+      String type
+      String name
+      String value
+    }
+
+    @Canonical
+    static class ButtonAction extends InteractiveAction {
+      String type = "button"
+      String label
+    }
+
+    @Canonical
+    static class InteractiveActionCallback {
+      InteractiveAction actionPerformed
+      String serviceId
+      String messageId
+      String user
     }
   }
 
