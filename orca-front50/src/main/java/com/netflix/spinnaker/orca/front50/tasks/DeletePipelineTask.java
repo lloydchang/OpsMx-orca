@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.spinnaker.orca.front50.tasks;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -99,8 +100,8 @@ public class DeletePipelineTask implements CloudProviderAware, RetryableTask {
         .forEach(m -> m.mutate(pipeline));
 
     Response response =
-        front50Service.deletePipelineConfig(
-            pipeline.get("application").toString(), pipeline.get("name").toString(), staleCheck);
+        front50Service.deletePipeline(
+            pipeline.get("application").toString(), pipeline.get("name").toString());
 
     Map<String, Object> outputs = new HashMap<>();
     outputs.put("notification.type", "deletepipeline");
@@ -112,7 +113,7 @@ public class DeletePipelineTask implements CloudProviderAware, RetryableTask {
           (Map<String, Object>) objectMapper.readValue(response.getBody().in(), Map.class);
       outputs.put("pipeline.id", savedPipeline.get("id"));
     } catch (Exception e) {
-      log.error("Unable to deserialize saved pipeline, reason: ", e.getMessage());
+      log.error("Unable to deserialize saved pipeline, reason: ", e);
 
       if (pipeline.containsKey("id")) {
         outputs.put("pipeline.id", pipeline.get("id"));

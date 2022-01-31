@@ -24,7 +24,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class DeletePipelineStage implements StageDefinitionBuilder {
-
   @Override
   public void taskGraph(@Nonnull StageExecution stage, @Nonnull Builder builder) {
 
