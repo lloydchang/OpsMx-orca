@@ -28,6 +28,7 @@ RUN mv Opsmx.VerificationGatePlugin-VerificationPlugin-v1.0.1-SNAPSHOT.zip /opt/
 ###
 #RUN chown -R spinnaker:spinnaker /opt/
 RUN chown -R spinnaker:root  /opt/
+RUN chown -R spinnaker:root /opt/orca/plugins/ && chmod -R 777 /opt/orca/plugins/
 USER spinnaker
 
 CMD ["/opt/orca/bin/orca"]
