@@ -42,7 +42,10 @@ public class WaitForRequiredInstancesDownTask extends AbstractInstancesCheckTask
     if (interestingHealthProviderNames != null && interestingHealthProviderNames.isEmpty()) {
       return true
     }
-
+    String cloudProvider = getCloudProvider(stage);
+    if ("cloudrun".equals(cloudProvider)) {
+      return true;
+    }
     int targetDesiredSize = instances.size()
 
     // During a rolling red/black we want a percentage of instances to be disabled.
