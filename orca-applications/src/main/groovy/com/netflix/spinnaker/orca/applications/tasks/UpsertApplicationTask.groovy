@@ -22,12 +22,16 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.applications.utils.ApplicationNameValidator
-import com.netflix.spinnaker.orca.front50.Front50Service
+
+import com.netflix.spinnaker.orca.applications.utils.ValidateRBAC
+
 import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.front50.tasks.AbstractFront50Task
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import org.springframework.lang.Nullable
+
+import org.springframework.beans.factory.annotation.Autowired
+
 import org.springframework.stereotype.Component
 
 @Slf4j
@@ -35,31 +39,8 @@ import org.springframework.stereotype.Component
 @CompileStatic
 class UpsertApplicationTask extends AbstractFront50Task implements ApplicationNameValidator {
 
-  UpsertApplicationTask(@Nullable Front50Service front50Service,
-                        ObjectMapper mapper,
-                        DynamicConfigService configService) {
-    super(front50Service, mapper, configService)
-  }
-
-  @Override
-  long getBackoffPeriod() {
-    return this.configService
-        .getConfig(
-            Long.class,
-            "tasks.upsert-application.backoff-ms",
-           10000L
-        )
-  }
-
-  @Override
-  long getTimeout() {
-    return this.configService
-        .getConfig(
-            Long.class,
-            "tasks.upsert-application.timeout-ms",
-            3600000L
-        )
-  }
+  @Autowired
+  ValidateRBAC validateRBAC
 
   @Override
   TaskResult performRequest(Application application) {
@@ -77,11 +58,19 @@ class UpsertApplicationTask extends AbstractFront50Task implements ApplicationNa
 
     def existingApplication = fetchApplication(application.name)
     if (existingApplication) {
+      def rbacValidationErrors = validateRBAC.validatePolicy(application, "updateApp")
+      if (rbacValidationErrors) {
+        throw new IllegalArgumentException("Error(s): ${rbacValidationErrors}")
+      }
       outputs.previousState = existingApplication
       log.info("Updating application (name: ${application.name})")
       front50Service.update(application.name, application)
     } else {
       log.info("Creating application (name: ${application.name})")
+      def rbacValidationErrors = validateRBAC.validatePolicy(application, "createApp")
+      if (rbacValidationErrors) {
+        throw new IllegalArgumentException("Error(s): ${rbacValidationErrors}")
+      }
       front50Service.create(application)
       if (application.permission?.permissions == null) {
         application.setPermissions(Permissions.EMPTY)
