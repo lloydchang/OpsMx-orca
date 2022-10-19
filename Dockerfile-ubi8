@@ -1,0 +1,9 @@
+FROM registry.access.redhat.com/ubi8/ubi:8.3
+MAINTAINER sig-platform@spinnaker.io
+COPY orca-web/build/install/orca /opt/orca
+RUN yum -y install java-11-openjdk-headless.x86_64 wget vim net-tools curl nettle
+RUN yum -y update
+RUN adduser spinnaker
+RUN mkdir -p /opt/orca/plugins
+USER spinnaker
+CMD ["/opt/orca/bin/orca"]
