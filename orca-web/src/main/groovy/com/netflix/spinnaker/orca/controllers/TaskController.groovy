@@ -295,7 +295,7 @@ class TaskController {
    * missing, it is defaulted to false.
    * @return
    */
-  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ') && hasPermission(#pipelineName, 'PIPELINE', 'READ')")
   @RequestMapping(value = "/applications/{application}/pipelines/search", method = RequestMethod.GET)
   List<PipelineExecution> searchForPipelinesByTrigger(
     @PathVariable(value = "application") String application,
@@ -412,13 +412,13 @@ class TaskController {
     return result
   }
 
-  @PostAuthorize("hasPermission(returnObject.application, 'APPLICATION', 'READ')")
+  @PostAuthorize("hasPermission(returnObject.application, 'APPLICATION', 'READ') && hasPermission(returnObject.name, 'PIPELINE', 'READ')")
   @RequestMapping(value = "/pipelines/{id}", method = RequestMethod.GET)
   PipelineExecution getPipeline(@PathVariable String id) {
     executionRepository.retrieve(PIPELINE, id)
   }
 
-  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'WRITE')")
+  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'WRITE') && hasPermission(this.getPipeline(#id)?.name, 'PIPELINE', 'WRITE')")
   @RequestMapping(value = "/pipelines/{id}", method = RequestMethod.DELETE)
   void deletePipeline(@PathVariable String id) {
     executionRepository.retrieve(PIPELINE, id).with {
@@ -431,7 +431,7 @@ class TaskController {
     }
   }
 
-  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'EXECUTE')")
+  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'EXECUTE') && hasPermission(this.getPipeline(#id)?.name, 'PIPELINE', 'EXECUTE')")
   @RequestMapping(value = "/pipelines/{id}/cancel", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
   void cancel(
@@ -440,14 +440,14 @@ class TaskController {
     executionOperator.cancel(PIPELINE, id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"), reason)
   }
 
-  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'EXECUTE')")
+  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'EXECUTE') && hasPermission(this.getPipeline(#id)?.name, 'PIPELINE', 'EXECUTE')")
   @RequestMapping(value = "/pipelines/{id}/pause", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
   void pause(@PathVariable String id) {
     executionOperator.pause(PIPELINE, id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
   }
 
-  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'EXECUTE')")
+  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'EXECUTE') && hasPermission(this.getPipeline(#id)?.name, 'PIPELINE', 'EXECUTE')")
   @RequestMapping(value = "/pipelines/{id}/resume", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
   void resume(@PathVariable String id) {
@@ -455,7 +455,7 @@ class TaskController {
   }
 
   @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
-  @PostFilter("hasPermission(this.getPipeline(filterObject)?.application, 'APPLICATION', 'READ')")
+  @PostFilter("hasPermission(this.getPipeline(filterObject)?.application, 'APPLICATION', 'READ') && hasPermission(this.getPipeline(#id)?.name, 'PIPELINE', 'READ')")
   @RequestMapping(value = "/pipelines/running", method = RequestMethod.GET)
   @ResponseStatus(HttpStatus.GONE)
   List<String> runningPipelines() {
@@ -463,14 +463,14 @@ class TaskController {
   }
 
   @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
-  @PostFilter("hasPermission(this.getPipeline(filterObject)?.application, 'APPLICATION', 'READ')")
+  @PostFilter("hasPermission(this.getPipeline(filterObject)?.application, 'APPLICATION', 'READ') && hasPermission(this.getPipeline(filterObject)?.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/pipelines/waiting", method = RequestMethod.GET)
   @ResponseStatus(HttpStatus.GONE)
   List<String> waitingPipelines() {
     []
   }
 
-  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'EXECUTE')")
+  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'EXECUTE') && hasPermission(this.getPipeline(#id)?.name, 'PIPELINE', 'EXECUTE')")
   @RequestMapping(value = "/pipelines/{id}/stages/{stageId}", method = RequestMethod.PATCH)
   PipelineExecution updatePipelineStage(
     @PathVariable String id,
@@ -498,14 +498,14 @@ class TaskController {
     }
   }
 
-  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'EXECUTE')")
+  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'EXECUTE') && hasPermission(this.getPipeline(#id)?.name, 'PIPELINE', 'EXECUTE')")
   @RequestMapping(value = "/pipelines/{id}/stages/{stageId}/restart", method = RequestMethod.PUT)
   PipelineExecution retryPipelineStage(
     @PathVariable String id, @PathVariable String stageId, @RequestBody Map restartDetails) {
     return executionOperator.restartStage(id, stageId, restartDetails)
   }
 
-  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'READ')")
+  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'READ') && hasPermission(this.getPipeline(#id)?.name, 'PIPELINE', 'READ')")
   @RequestMapping(value = "/pipelines/{id}/evaluateExpression", method = RequestMethod.GET)
   Map evaluateExpressionForExecution(@PathVariable("id") String id,
                                      @RequestParam("expression")
@@ -524,7 +524,7 @@ class TaskController {
     return [result: evaluated?.expression, detail: evaluated?.expressionEvaluationSummary]
   }
 
-  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'READ')")
+  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'READ') && hasPermission(this.getPipeline(#id)?.name, 'PIPELINE', 'READ')")
   @RequestMapping(value = "/pipelines/{id}/{stageId}/evaluateExpression", method = RequestMethod.GET)
   Map evaluateExpressionForExecutionAtStage(@PathVariable("id") String id,
                                             @PathVariable("stageId") String stageId,
@@ -544,7 +544,7 @@ class TaskController {
     return [result: evaluated?.expression, detail: evaluated?.expressionEvaluationSummary]
   }
 
-  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'READ')")
+  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'READ') && hasPermission(this.getPipeline(#id)?.name, 'PIPELINE', 'READ')")
   @PostMapping("/pipelines/{id}/evaluateVariables")
   Map evaluateVariables(@PathVariable("id") String id,
                         @RequestParam(value = "requisiteStageRefIds", defaultValue = "") String requisiteStageRefIds,
