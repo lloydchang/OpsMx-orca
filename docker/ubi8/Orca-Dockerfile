@@ -25,7 +25,8 @@ RUN mv Opsmx.VerificationGatePlugin-VerificationPlugin-v1.0.1-SNAPSHOT.zip /opt/
     && mv Opsmx.PolicyGatePlugin-policyPlugin-v1.0.1-SNAPSHOT.zip /opt/orca/plugins/ \
     && mv Opsmx.PolicyGatePlugin-RbacPlugin-v1.0.1-SNAPSHOT.zip /opt/orca/plugins/ \
     && mv Opsmx.VisibilityApprovalPlugin-ApprovalStagePlugin-v1.0.1-SNAPSHOT.zip /opt/orca/plugins/
-###
+
+RUN chmod -R 777 /opt/orca/plugins/
 RUN chown -R spinnaker:spinnaker /opt/
 USER spinnaker
 CMD ["/opt/orca/bin/orca"]
