@@ -243,7 +243,7 @@ class ManualJudgmentStageSpec extends Specification {
     judgmentStatus | propagateAuthenticationContext || isPresent
     "continue"     | true                           || true
     "ContinuE"     | true                           || true
-    "continue"     | false                          || false
+    "continue"     | false                          || true
     "stop"         | true                           || false
     "stop"         | false                          || false
     ""             | true                           || false

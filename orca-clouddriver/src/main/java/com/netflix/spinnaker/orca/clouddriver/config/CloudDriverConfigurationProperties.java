@@ -19,13 +19,23 @@ package com.netflix.spinnaker.orca.clouddriver.config;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+/**
+ * NB: The explicit @Getter, @Setter and @NoArgsConstructor on some of these inner classes is
+ * required. Some weird behaviour going on when using @Data prevented fields from being populated.
+ * See spinnaker/#6704.
+ */
 @Data
 @ConfigurationProperties
 public class CloudDriverConfigurationProperties {
 
-  @Data
+  @Getter
+  @Setter
+  @NoArgsConstructor
   public static class BaseUrl {
     private String baseUrl;
     private int priority = 1;
@@ -42,7 +52,9 @@ public class CloudDriverConfigurationProperties {
     private List<BaseUrl> baseUrls;
   }
 
-  @Data
+  @Getter
+  @Setter
+  @NoArgsConstructor
   public static class CloudDriver {
     private String baseUrl;
     private MultiBaseUrl readonly;
@@ -53,7 +65,7 @@ public class CloudDriverConfigurationProperties {
   private BaseUrl kato;
   private CloudDriver clouddriver;
 
-  String getCloudDriverBaseUrl() {
+  public String getCloudDriverBaseUrl() {
     if (clouddriver != null && clouddriver.baseUrl != null) {
       return clouddriver.baseUrl;
     } else if (kato != null && kato.baseUrl != null) {
@@ -67,7 +79,7 @@ public class CloudDriverConfigurationProperties {
     return null;
   }
 
-  List<BaseUrl> getCloudDriverReadOnlyBaseUrls() {
+  public List<BaseUrl> getCloudDriverReadOnlyBaseUrls() {
     if (clouddriver != null
         && clouddriver.readonly != null
         && clouddriver.readonly.baseUrl != null) {

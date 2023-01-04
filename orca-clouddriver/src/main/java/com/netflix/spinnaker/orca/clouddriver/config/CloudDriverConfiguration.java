@@ -57,7 +57,7 @@ import retrofit.converter.JacksonConverter;
   PollerConfigurationProperties.class
 })
 @Slf4j
-class CloudDriverConfiguration {
+public class CloudDriverConfiguration {
 
   @ConditionalOnMissingBean(ObjectMapper.class)
   @Bean
@@ -80,7 +80,7 @@ class CloudDriverConfiguration {
         cloudDriverConfigurationProperties);
   }
 
-  static class ClouddriverRetrofitBuilder {
+  public static class ClouddriverRetrofitBuilder {
     ObjectMapper objectMapper;
     OkHttpClientProvider clientProvider;
     RestAdapter.LogLevel retrofitLogLevel;
@@ -100,7 +100,7 @@ class CloudDriverConfiguration {
       this.cloudDriverConfigurationProperties = cloudDriverConfigurationProperties;
     }
 
-    <T> T buildWriteableService(Class<T> type) {
+    public <T> T buildWriteableService(Class<T> type) {
       return buildService(type, cloudDriverConfigurationProperties.getCloudDriverBaseUrl());
     }
 
