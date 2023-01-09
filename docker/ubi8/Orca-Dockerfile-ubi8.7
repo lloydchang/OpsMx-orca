@@ -12,7 +12,6 @@ RUN yum -y update
 RUN useradd spinnaker
 RUN mkdir -p /opt/orca/plugins
 
-RUN chown -R spinnaker:spinnaker /opt/
 RUN chmod -R 777 /opt/orca/plugins/
 RUN chown -R spinnaker:spinnaker /opt/
 USER spinnaker
