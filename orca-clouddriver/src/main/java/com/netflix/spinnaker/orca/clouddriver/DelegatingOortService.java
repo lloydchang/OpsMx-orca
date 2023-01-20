@@ -22,11 +22,9 @@ import com.netflix.spinnaker.orca.clouddriver.model.Manifest;
 import com.netflix.spinnaker.orca.clouddriver.model.ManifestCoordinates;
 import java.util.List;
 import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import retrofit.client.Response;
 
-@Slf4j
 public class DelegatingOortService extends DelegatingClouddriverService<OortService>
     implements OortService {
 
@@ -134,14 +132,6 @@ public class DelegatingOortService extends DelegatingClouddriverService<OortServ
 
   @Override
   public Response fetchArtifact(Artifact artifact) {
-    if (artifact != null) {
-      log.info(
-          "********** Fetching artifact : {}, type : {}; metadata string length: {}",
-          artifact.getName(),
-          artifact.getType(),
-          artifact.getMetadata().toString().length());
-    }
-
     return getService().fetchArtifact(artifact);
   }
 

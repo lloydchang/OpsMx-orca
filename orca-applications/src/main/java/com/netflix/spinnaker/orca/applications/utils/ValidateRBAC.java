@@ -24,16 +24,17 @@ import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.orca.front50.model.Application;
 import groovy.util.logging.Slf4j;
-import java.io.IOException;
-import java.util.EnumSet;
-import java.util.Map;
-import java.util.Set;
 import okhttp3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 @Component
@@ -74,20 +75,14 @@ public class ValidateRBAC {
       logger.debug("Verifying {} with OPA", finalInput);
 
       RequestBody requestBody = RequestBody.create(JSON, finalInput);
-      String opaFinalUrl =
-          String.format(
-              "%s/%s",
-              opaUrl.endsWith("/") ? opaUrl.substring(0, opaUrl.length() - 1) : opaUrl,
-              opaPolicyLocation.startsWith("/")
-                  ? opaPolicyLocation.substring(1)
-                  : opaPolicyLocation);
+      String opaFinalUrl = String.format("%s/%s", opaUrl.endsWith("/") ? opaUrl.substring(0, opaUrl.length() - 1) : opaUrl, opaPolicyLocation.startsWith("/") ? opaPolicyLocation.substring(1) : opaPolicyLocation);
 
       logger.info("OPA endpoint : {}", opaFinalUrl);
       /* fetch the response from the spawned call execution */
       httpResponse = doPost(opaFinalUrl, requestBody);
       String opaStringResponse = httpResponse.body() != null ? httpResponse.body().string() : "";
       logger.debug("OPA response: {}", opaStringResponse);
-      if (httpResponse.code() == 401) {
+      if (httpResponse.code() == 401 ) {
         JsonObject opaResponse = gson.fromJson(opaStringResponse, JsonObject.class);
         StringBuilder denyMessage = new StringBuilder();
         extractDenyMessage(opaResponse, denyMessage);
@@ -103,7 +98,7 @@ public class ValidateRBAC {
         } else {
           return httpResponse.message();
         }
-      } else if (httpResponse.code() != 200) {
+      } else if (httpResponse.code() != 200 ) {
         return "Policy validation failed with status code" + httpResponse.code();
       }
 
@@ -117,29 +112,26 @@ public class ValidateRBAC {
 
   private void extractDenyMessage(JsonObject opaResponse, StringBuilder messagebuilder) {
     Set<Map.Entry<String, JsonElement>> fields = opaResponse.entrySet();
-    fields.forEach(
-        field -> {
-          if (field.getKey().equalsIgnoreCase(opaResultKey)) {
-            JsonArray resultKey = field.getValue().getAsJsonArray();
-            if (resultKey.size() != 0) {
-              resultKey.forEach(
-                  result -> {
-                    if (StringUtils.isNotEmpty(messagebuilder)) {
-                      messagebuilder.append(", ");
-                    }
-                    messagebuilder.append(result.getAsString());
-                  });
+    fields.forEach(field -> {
+      if (field.getKey().equalsIgnoreCase(opaResultKey)) {
+        JsonArray resultKey = field.getValue().getAsJsonArray();
+        if (resultKey.size() != 0) {
+          resultKey.forEach(result -> {
+            if (StringUtils.isNotEmpty(messagebuilder)) {
+              messagebuilder.append(", ");
             }
-          } else if (field.getValue().isJsonObject()) {
-            extractDenyMessage(field.getValue().getAsJsonObject(), messagebuilder);
-          } else if (field.getValue().isJsonArray()) {
-            field
-                .getValue()
-                .getAsJsonArray()
-                .forEach(obj -> extractDenyMessage(obj.getAsJsonObject(), messagebuilder));
-          }
-        });
+            messagebuilder.append(result.getAsString());
+          });
+        }
+      }else if (field.getValue().isJsonObject()) {
+        extractDenyMessage(field.getValue().getAsJsonObject(), messagebuilder);
+      } else if (field.getValue().isJsonArray()){
+        field.getValue().getAsJsonArray().forEach(obj ->
+            extractDenyMessage(obj.getAsJsonObject(), messagebuilder));
+      }
+    });
   }
+
 
   private String getOpaInput(Application application, String type) {
     JsonObject applicationJson = applicationToJson(application, type);
@@ -155,18 +147,17 @@ public class ValidateRBAC {
     appDetailsObject.addProperty("email", application.email);
 
     JsonObject permission = new JsonObject();
-    Set<Authorization> allPermisions = EnumSet.allOf(Authorization.class);
+    Set<Authorization> allPermisions = EnumSet.allOf( Authorization.class );
     if (application.getPermission() != null) {
       Permissions permissions = application.getPermission().getPermissions();
       if (permissions != null) {
-        allPermisions.forEach(
-            auth -> {
-              JsonArray roles = new JsonArray();
-              permissions.get(auth).forEach(role -> roles.add(role));
-              permission.add(auth.name(), roles);
-            });
-      } else {
-        allPermisions.forEach(auth -> permission.add(auth.name(), new JsonArray()));
+        allPermisions.forEach(auth -> {
+          JsonArray roles = new  JsonArray();
+          permissions.get(auth).forEach(role -> roles.add(role));
+          permission.add(auth.name(), roles);
+        });
+      }  else {
+        allPermisions.forEach(auth -> permission.add(auth.name(), new  JsonArray()));
       }
     }
     appDetailsObject.add("permissions", permission);
