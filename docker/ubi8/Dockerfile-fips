@@ -1,4 +1,4 @@
-quay.io/opsmxpublic/ubifips:8.7
+FROM quay.io/opsmxpublic/ubifips:8.7
 LABEL name='orca'
 LABEL maintainer='info@opsmx.io'
 LABEL summary='Red Hat certified Open Enterprise Spinnaker ubi8 container image for orca'
