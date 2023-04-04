@@ -6,7 +6,6 @@ LABEL description='Certified Open Enterprise Spinnaker is an Enterprise grade, R
 LABEL vendor='OpsMx'
 
 COPY orca-web/build/install/orca /opt/orca
-RUN yum -y update-minimal --security --sec-severity=Important --sec-severity=Critical --setopt=tsflags=nodocs
 RUN yum -y install java-11-openjdk java-11-openjdk-devel wget vim curl net-tools nettle
 RUN yum -y update
 RUN useradd spinnaker
