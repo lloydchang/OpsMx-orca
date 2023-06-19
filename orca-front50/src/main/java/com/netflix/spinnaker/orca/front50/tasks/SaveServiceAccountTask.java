@@ -81,9 +81,13 @@ public class SaveServiceAccountTask implements RetryableTask {
     return TimeUnit.SECONDS.toMillis(1);
   }
 
+  @Value("${tasks.save-service-account.timeout-millis:60000}")
+  private long timeout;
+
   @Override
   public long getTimeout() {
-    return TimeUnit.SECONDS.toMillis(60);
+    log.debug("SaveServiceAccountTask timeout-millis :{}", timeout);
+    return timeout;
   }
 
   @Nonnull
