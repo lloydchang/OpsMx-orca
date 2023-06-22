@@ -24,11 +24,11 @@ import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.front50.PipelineModelMutator;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import retrofit.client.Response;
@@ -137,9 +137,13 @@ public class DeletePipelineTask implements CloudProviderAware, RetryableTask {
     return 1000;
   }
 
+  @Value("${tasks.delete-pipeline.timeout-millis:30000}")
+  private long timeout;
+
   @Override
   public long getTimeout() {
-    return TimeUnit.SECONDS.toMillis(30);
+    log.debug("DeletePipelineTask timeout-millis :{}", timeout);
+    return timeout;
   }
 
   private void updateServiceAccount(Map<String, Object> pipeline, String serviceAccount) {
