@@ -490,7 +490,7 @@ class SqlExecutionRepository(
         },
         seek = {
           val ordered = when (sorter) {
-            START_TIME_OR_ID -> it.orderBy(field("start_time").desc().nullsFirst(), field("id").desc())
+            START_TIME_OR_ID -> it.orderBy(field("start_time").desc(), field("id").desc())
             BUILD_TIME_DESC -> it.orderBy(field("build_time").asc(), field("id").asc())
             else -> it.orderBy(field("id").desc())
           }
