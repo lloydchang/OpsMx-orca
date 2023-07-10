@@ -40,19 +40,24 @@ import javax.annotation.Nullable;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
 public class CreateBakeManifestTask implements RetryableTask {
+
   @Override
   public long getBackoffPeriod() {
     return 30000;
   }
 
+  @Value("${bake.timeout-millis:300000}")
+  private long timeout;
+
   @Override
   public long getTimeout() {
-    return 300000;
+    return timeout;
   }
 
   @Nullable private final BakeryService bakery;
