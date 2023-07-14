@@ -24,11 +24,11 @@ import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.front50.PipelineModelMutator;
 import com.netflix.spinnaker.orca.front50.pipeline.SavePipelineStage;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import retrofit.client.Response;
@@ -55,6 +55,7 @@ public class SavePipelineTask implements RetryableTask {
   @SuppressWarnings("unchecked")
   @Override
   public TaskResult execute(StageExecution stage) {
+    log.debug("****************Start of the Save Pipeline Task");
     if (front50Service == null) {
       throw new UnsupportedOperationException(
           "Front50 is not enabled, no way to save pipeline. Fix this by setting front50.enabled: true");
@@ -128,6 +129,12 @@ public class SavePipelineTask implements RetryableTask {
         status = ExecutionStatus.TERMINAL;
       }
     }
+    log.info(
+        "*******application {} Save Pipeline {}  of status {}",
+        pipeline.get("application"),
+        pipeline.get("name"),
+        status);
+    log.info("****************End of the Save Pipeline Task");
     return TaskResult.builder(status).context(outputs).build();
   }
 
@@ -136,9 +143,13 @@ public class SavePipelineTask implements RetryableTask {
     return 1000;
   }
 
+  @Value("${tasks.save-pipeline.timeout-millis:30000}")
+  private long timeout;
+
   @Override
   public long getTimeout() {
-    return TimeUnit.SECONDS.toMillis(30);
+    log.debug("SavePipelineTask timeout-millis :{}", timeout);
+    return timeout;
   }
 
   private void updateServiceAccount(Map<String, Object> pipeline, String serviceAccount) {

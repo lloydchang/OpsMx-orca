@@ -69,9 +69,13 @@ public class MonitorFront50Task implements RetryableTask {
     return TimeUnit.SECONDS.toMillis(5);
   }
 
+  @Value("${tasks.monitor-front50.timeout-millis:90000}")
+  private long timeout;
+
   @Override
   public long getTimeout() {
-    return TimeUnit.SECONDS.toMillis(90);
+    log.debug("MonitorFront50Task timeout-millis :{}", timeout);
+    return timeout;
   }
 
   @Nonnull
