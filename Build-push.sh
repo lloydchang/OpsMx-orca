@@ -28,7 +28,7 @@ echo "Build id is --------------------- $BUILD_ID"
 
 
    # Assigning Rhel Image Name according to Quay.io Details
-   IMAGENAME="quay.io/opsmxpublic/ubi8-oes-orca:${GITHASH}-${BUILD_NUMBER}"
+   IMAGENAME="quay.io/opsmxpublic/ubi8-oes-orca:${GITHASH}-${BUILD_NUMBER}-jaeger"
    
    # Assigning Rhel Image Name according to Docker.io Details
    #RELEASE_IMAGENAME="opsmx11/ubi8-oes-orca:${GITHASH}-${BUILD_NUMBER}"
