@@ -35,8 +35,7 @@ echo "Build id is --------------------- $BUILD_ID"
 
    
    # To Build Docker image with Given Docker File
-  # docker build -t $IMAGENAME .  -f  ${DOCKERFILE_PATH} --no-cache  --build-arg CUSTOMPLUGIN_RELEASEVERSION=${CUSTOMPLUGIN_RELEASEVERSION} 
-    docker build -t $IMAGENAME .  -f  ${DOCKERFILE_PATH} --no-cache
+  docker build -t $IMAGENAME .  -f  ${DOCKERFILE_PATH} --no-cache  --build-arg CUSTOMPLUGIN_RELEASEVERSION=${CUSTOMPLUGIN_RELEASEVERSION} 
    
    # Create new Image Tag for Docker.io with the previous Build
    #docker tag $IMAGENAME $RELEASE_IMAGENAME
