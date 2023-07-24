@@ -22,6 +22,7 @@ export GRADLE_OPTS="-Xmx6g -Xms6g"
 # The Current Build ID 
 echo "Build id is --------------------- $BUILD_ID"
 
+
 # Gradle command  to Produce the Dependant targetfiles for Docker build
 ./gradlew --no-daemon  -PenableCrossCompilerPlugin=true orca-web:installDist -x test
 
@@ -30,15 +31,15 @@ echo "Build id is --------------------- $BUILD_ID"
    IMAGENAME="quay.io/opsmxpublic/ubi8-oes-orca:${GITHASH}-${BUILD_NUMBER}"
    
    # Assigning Rhel Image Name according to Docker.io Details
-   RELEASE_IMAGENAME="opsmx11/ubi8-oes-orca:${GITHASH}-${BUILD_NUMBER}"
-
+   #RELEASE_IMAGENAME="opsmx11/ubi8-oes-orca:${GITHASH}-${BUILD_NUMBER}"
 
    
    # To Build Docker image with Given Docker File
-   docker build -t $IMAGENAME .  -f  ${DOCKERFILE_PATH} --no-cache  --build-arg CUSTOMPLUGIN_RELEASEVERSION=${CUSTOMPLUGIN_RELEASEVERSION} 
+  # docker build -t $IMAGENAME .  -f  ${DOCKERFILE_PATH} --no-cache  --build-arg CUSTOMPLUGIN_RELEASEVERSION=${CUSTOMPLUGIN_RELEASEVERSION} 
+    docker build -t $IMAGENAME .  -f  ${DOCKERFILE_PATH} --no-cache
    
    # Create new Image Tag for Docker.io with the previous Build
-   docker tag $IMAGENAME $RELEASE_IMAGENAME
+   #docker tag $IMAGENAME $RELEASE_IMAGENAME
    
    # Quay.io login
    docker login -u $quay_user -p $quay_pass quay.io
@@ -47,10 +48,10 @@ echo "Build id is --------------------- $BUILD_ID"
    docker push $IMAGENAME
 
    # Docker.io login
-   docker login -u $docker_user -p $docker_pass docker.io
+   #docker login -u $docker_user -p $docker_pass docker.io
    
    # To Push the Docker image into Quay.io
-   docker push $RELEASE_IMAGENAME
+   #docker push $RELEASE_IMAGENAME
   
    echo "Orca: ${IMAGENAME}"
 
