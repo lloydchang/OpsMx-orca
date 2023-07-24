@@ -63,6 +63,7 @@ class UpsertApplicationTask extends AbstractFront50Task implements ApplicationNa
 
   @Override
   TaskResult performRequest(Application application) {
+    log.info("**********Start of the Application creation or update")
     Map<String, Object> outputs = [:]
     outputs.previousState = [:]
 
@@ -82,17 +83,26 @@ class UpsertApplicationTask extends AbstractFront50Task implements ApplicationNa
       front50Service.update(application.name, application)
     } else {
       log.info("Creating application (name: ${application.name})")
+      log.info("**********start of the application create : {}", new Date())
       front50Service.create(application)
+      log.info("**********End of the application create : {}", new Date())
+      log.info("**********Application permission Object :{}", application.permission)
       if (application.permission?.permissions == null) {
         application.setPermissions(Permissions.EMPTY)
+        log.info("**********Application permission set with Empty Object")
       }
     }
 
     if (application.permission?.permissions != null) {
+      log.info("**********Application permission roles sync to front50")
+      log.info("**********Application name :{} permission :{}",application.name,application.permission)
+      log.info("**********start of the application permission sync : {}", new Date())
       front50Service.updatePermission(application.name, application.permission)
+      log.info("**********End of the application permission sync : {}", new Date())
     }
 
     outputs.newState = application ?: [:]
+    log.info("**********End of the Application creation or update")
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).outputs(outputs).build()
   }
 
