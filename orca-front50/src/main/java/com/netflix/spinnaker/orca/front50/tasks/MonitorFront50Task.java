@@ -81,6 +81,7 @@ public class MonitorFront50Task implements RetryableTask {
   @Nonnull
   @Override
   public TaskResult execute(@Nonnull StageExecution stage) {
+    log.info("****Start of the MonitorFront50Task ");
     if (front50Service == null) {
       throw new UnsupportedOperationException(
           "Front50 was not enabled. Fix this by setting front50.enabled: true");
@@ -119,7 +120,7 @@ public class MonitorFront50Task implements RetryableTask {
           "No id found, unable to verify that the object has been updated (executionId: {})",
           stage.getExecution().getId());
     }
-
+    log.info("****End of the MonitorFront50Task ");
     return TaskResult.SUCCEEDED;
   }
 
