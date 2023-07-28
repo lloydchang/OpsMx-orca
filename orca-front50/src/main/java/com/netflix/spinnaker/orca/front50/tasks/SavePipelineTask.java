@@ -55,7 +55,7 @@ public class SavePipelineTask implements RetryableTask {
   @SuppressWarnings("unchecked")
   @Override
   public TaskResult execute(StageExecution stage) {
-    log.debug("****************Start of the Save Pipeline Task");
+    log.info("****************Start of the Save Pipeline Task");
     if (front50Service == null) {
       throw new UnsupportedOperationException(
           "Front50 is not enabled, no way to save pipeline. Fix this by setting front50.enabled: true");
@@ -108,6 +108,8 @@ public class SavePipelineTask implements RetryableTask {
     outputs.put("pipeline.name", pipeline.get("name"));
 
     try {
+      log.info("*************** Save Pipeline Task status :{}", response.getStatus());
+      log.info("*************** Save Pipeline Task status :{}", response.getReason());
       Map<String, Object> savedPipeline =
           (Map<String, Object>) objectMapper.readValue(response.getBody().in(), Map.class);
       outputs.put("pipeline.id", savedPipeline.get("id"));
