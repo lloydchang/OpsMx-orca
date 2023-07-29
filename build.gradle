@@ -41,6 +41,10 @@ subprojects {
     repositories {
       mavenLocal()
       maven{
+        credentials {
+          username = "NEXUS_USERNAME"
+          password = "NEXUS_PASSWORD"
+        }
         url "https://nexus.opsmx.net/repository/maven-snapshots/"
       }
     }
