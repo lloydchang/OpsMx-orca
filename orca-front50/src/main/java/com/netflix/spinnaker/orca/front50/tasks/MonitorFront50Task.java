@@ -86,7 +86,7 @@ public class MonitorFront50Task implements RetryableTask {
       throw new UnsupportedOperationException(
           "Front50 was not enabled. Fix this by setting front50.enabled: true");
     }
-
+    log.info("successThreshold :{}", successThreshold);
     if (successThreshold == 0) {
       return TaskResult.SUCCEEDED;
     }
@@ -128,6 +128,7 @@ public class MonitorFront50Task implements RetryableTask {
       Function<String, Optional<Map<String, Object>>> getObjectFunction,
       String id,
       Long startTime) {
+    log.info("Start of the monitor: MonitorFront50Task");
     /*
      * Some storage services (notably S3) are eventually consistent when versioning is enabled.
      *
@@ -139,6 +140,7 @@ public class MonitorFront50Task implements RetryableTask {
      */
     for (int i = 0; i < successThreshold; i++) {
       Optional<Map<String, Object>> object = getObjectFunction.apply(id);
+      log.info("Pipeline ObjectFunction :{}", object.isPresent());
       if (!object.isPresent()) {
         return TaskResult.RUNNING;
       }
@@ -149,7 +151,7 @@ public class MonitorFront50Task implements RetryableTask {
       } else {
         lastModifiedTime = Long.valueOf(object.get().get("lastModified").toString());
       }
-
+      log.info("Pipeline lastmodifiedTime :{}", lastModifiedTime);
       if (lastModifiedTime < (startTime - gracePeriodMs)) {
         return TaskResult.RUNNING;
       }
@@ -160,15 +162,21 @@ public class MonitorFront50Task implements RetryableTask {
       } catch (InterruptedException ignored) {
       }
     }
-
+    log.info("End of the monitor: MonitorFront50Task");
     return TaskResult.SUCCEEDED;
   }
 
   private Optional<Map<String, Object>> getPipeline(String id) {
+    log.info("Start of the getPipeline : MonitorFront50Task");
     try {
+      log.info("End of the getPipeline : MonitorFront50Task");
       return Optional.of(front50Service.getPipeline(id));
     } catch (RetrofitError e) {
+      log.info("RetrofitError occur while fetching from front50:{}", e);
+      log.info("RetrofitError response :{}", e.getResponse());
       if (e.getResponse() != null && e.getResponse().getStatus() == HTTP_NOT_FOUND) {
+        log.info("RetrofitError response status :{}", e.getResponse().getStatus());
+        log.info("End of the getPipeline : MonitorFront50Task");
         return Optional.empty();
       }
       throw e;
