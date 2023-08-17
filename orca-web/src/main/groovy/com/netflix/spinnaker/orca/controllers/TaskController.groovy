@@ -470,6 +470,23 @@ class TaskController {
     []
   }
 
+  @RequestMapping(value = "/pipelines/allrunning", method = RequestMethod.GET)
+  List<OrchestrationViewModel> allRunningPipelines(@RequestParam(value = "statuses", required = false) String statuses) {
+    ExecutionComparator sortType = BUILD_TIME_DESC
+    ExecutionCriteria executionCriteria = new ExecutionCriteria()
+        .setSortType(sortType)
+
+    if (statuses != null && statuses != "") {
+      executionCriteria.setStatuses(statuses.split(",").toList())
+    } else {
+      statuses = "RUNNING";
+      executionCriteria.setStatuses(statuses.split(",").toList())
+    }
+    executionRepository.retrieve(PIPELINE, executionCriteria).toBlocking().iterator.collect {
+      convert it
+    }
+  }
+
   @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'EXECUTE') && hasPermission(this.getPipeline(#id)?.name, 'PIPELINE', 'EXECUTE')")
   @RequestMapping(value = "/pipelines/{id}/stages/{stageId}", method = RequestMethod.PATCH)
   PipelineExecution updatePipelineStage(
