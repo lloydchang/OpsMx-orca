@@ -462,6 +462,23 @@ class TaskController {
     []
   }
 
+  @RequestMapping(value = "/pipelines/allrunning", method = RequestMethod.GET)
+  List<OrchestrationViewModel> allRunningPipelines(@RequestParam(value = "statuses", required = false) String statuses) {
+    ExecutionComparator sortType = BUILD_TIME_DESC
+    ExecutionCriteria executionCriteria = new ExecutionCriteria()
+        .setSortType(sortType)
+
+    if (statuses != null && statuses != "") {
+      executionCriteria.setStatuses(statuses.split(",").toList())
+    } else {
+      statuses = "RUNNING";
+      executionCriteria.setStatuses(statuses.split(",").toList())
+    }
+    executionRepository.retrieve(PIPELINE, executionCriteria).toBlocking().iterator.collect {
+      convert it
+    }
+  }
+
   @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
   @PostFilter("hasPermission(this.getPipeline(filterObject)?.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/pipelines/waiting", method = RequestMethod.GET)
