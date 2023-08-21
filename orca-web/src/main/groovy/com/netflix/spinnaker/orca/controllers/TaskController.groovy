@@ -440,6 +440,18 @@ class TaskController {
     executionOperator.cancel(PIPELINE, id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"), reason)
   }
 
+  @RequestMapping(value = "/pipelinesList/cancel", method = RequestMethod.POST)
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  void cancelRunningPipelines(
+      @RequestBody List<String> pipelineIdList, @RequestParam(required = false) String reason,
+      @RequestParam(defaultValue = "false") boolean force) {
+
+    log.info("*********Start of cancelRunningPipelines ");
+    for( String id : pipelineIdList) {
+      executionOperator.cancel(PIPELINE, id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"), reason)
+    }
+  }
+
   @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'EXECUTE') && hasPermission(this.getPipeline(#id)?.name, 'PIPELINE', 'EXECUTE')")
   @RequestMapping(value = "/pipelines/{id}/pause", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
