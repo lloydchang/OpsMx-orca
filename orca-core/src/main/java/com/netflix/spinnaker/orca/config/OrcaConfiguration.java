@@ -191,8 +191,8 @@ public class OrcaConfiguration {
   public ThreadPoolTaskExecutor applicationEventTaskExecutor() {
     ThreadPoolTaskExecutor threadPool = new ThreadPoolTaskExecutor();
     threadPool.setThreadNamePrefix("events-");
-    threadPool.setCorePoolSize(20);
-    threadPool.setMaxPoolSize(20);
+    threadPool.setCorePoolSize(100);
+    threadPool.setMaxPoolSize(100);
     return threadPool;
   }
 
