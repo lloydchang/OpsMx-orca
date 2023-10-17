@@ -55,6 +55,7 @@ import java.util.List;
 import org.pf4j.PluginManager;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -188,11 +189,14 @@ public class OrcaConfiguration {
   }
 
   @Bean
-  public ThreadPoolTaskExecutor applicationEventTaskExecutor() {
+  public ThreadPoolTaskExecutor applicationEventTaskExecutor(
+      @Value("${thread.application.event.namePrefix:events-}") String threadNamePrefix,
+      @Value("${thread.application.event.corePoolSize:20}") int corePoolSize,
+      @Value("${thread.application.event.maxPoolSize:20}") int maxPoolSize) {
     ThreadPoolTaskExecutor threadPool = new ThreadPoolTaskExecutor();
-    threadPool.setThreadNamePrefix("events-");
-    threadPool.setCorePoolSize(100);
-    threadPool.setMaxPoolSize(100);
+    threadPool.setThreadNamePrefix(threadNamePrefix);
+    threadPool.setCorePoolSize(corePoolSize);
+    threadPool.setMaxPoolSize(maxPoolSize);
     return threadPool;
   }
 
