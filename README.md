@@ -114,3 +114,7 @@ e5792d192c6d5f67786b663fb7ba2138d1f9d95c | Yugandharkumar | Create commits-prese
 
 
 4cc3b9f3ae3cf44d52337b95dfd7de776f298251 | sanopsmx | Made the application events thread properties configurable. | 2023-10-17 
+
+
+
+52990eaa7b87ab5f89ecd9be6615530f5e0df710 | Sanjeev Thatiparthi | Made the application events thread properties configurable. (#47) | 2023-10-17 
