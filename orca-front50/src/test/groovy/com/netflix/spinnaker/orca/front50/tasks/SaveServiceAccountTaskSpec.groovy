@@ -24,6 +24,7 @@ import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatStatus
+import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
@@ -41,10 +42,11 @@ class SaveServiceAccountTaskSpec extends Specification {
   }
   ObjectMapper objectMapper = new ObjectMapper()
   boolean useSharedManagedServiceAccounts = false
+  RetrySupport retrySupport = new RetrySupport()
 
   @Subject
   SaveServiceAccountTask task = new SaveServiceAccountTask(Optional.of(fiatStatus), Optional.of(front50Service),
-  Optional.of(fiatPermissionEvaluator), useSharedManagedServiceAccounts)
+  Optional.of(fiatPermissionEvaluator), useSharedManagedServiceAccounts, retrySupport)
 
   def "should do nothing if no pipeline roles present"() {
     given:
@@ -259,7 +261,7 @@ class SaveServiceAccountTaskSpec extends Specification {
     def expectedServiceAccount = new ServiceAccount(name: expectedServiceAccountName, memberOf: ['foo'])
 
     task = new SaveServiceAccountTask(Optional.of(fiatStatus), Optional.of(front50Service),
-        Optional.of(fiatPermissionEvaluator), useSharedManagedServiceAccountsEnabled)
+        Optional.of(fiatPermissionEvaluator), useSharedManagedServiceAccountsEnabled, retrySupport)
 
     when:
     stage.getExecution().setTrigger(new DefaultTrigger('manual', null, 'abc@somedomain.io'))

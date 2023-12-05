@@ -25,6 +25,7 @@ import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.fiat.shared.FiatStatus;
+import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.exceptions.UserException;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
@@ -63,17 +64,21 @@ public class SaveServiceAccountTask implements RetryableTask {
   private final FiatPermissionEvaluator fiatPermissionEvaluator;
   private final boolean useSharedManagedServiceAccounts;
 
+  private final RetrySupport retrySupport;
+
   @Autowired
   SaveServiceAccountTask(
       Optional<FiatStatus> fiatStatus,
       Optional<Front50Service> front50Service,
       Optional<FiatPermissionEvaluator> fiatPermissionEvaluator,
       @Value("${tasks.use-shared-managed-service-accounts:false}")
-          boolean useSharedManagedServiceAccounts) {
+          boolean useSharedManagedServiceAccounts,
+      RetrySupport retrySupport) {
     this.fiatStatus = fiatStatus.get();
     this.front50Service = front50Service.get();
     this.fiatPermissionEvaluator = fiatPermissionEvaluator.get();
     this.useSharedManagedServiceAccounts = useSharedManagedServiceAccounts;
+    this.retrySupport = retrySupport;
   }
 
   @Override
@@ -228,7 +233,10 @@ public class SaveServiceAccountTask implements RetryableTask {
   }
 
   private boolean pipelineRolesChanged(String serviceAccountName, List<String> pipelineRoles) {
-    UserPermission.View permission = fiatPermissionEvaluator.getPermission(serviceAccountName);
+
+    UserPermission.View permission =
+        retrySupport.retry(
+            () -> fiatPermissionEvaluator.getPermission(serviceAccountName), 10, 1000, false);
     if (permission == null || pipelineRoles == null) { // check if user has all permissions
       return true;
     }
