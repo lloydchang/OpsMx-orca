@@ -32,12 +32,14 @@ import com.netflix.spinnaker.orca.api.pipeline.ExecutionPreprocessor
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.PipelineModelMutator
 import com.netflix.spinnaker.orca.igor.BuildService
+
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipelinetemplate.PipelineTemplateService
+import com.netflix.spinnaker.orca.util.OpenPolicyAgentValidator
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
@@ -98,6 +100,9 @@ class OperationsController {
 
   @Autowired(required = false)
   Front50Service front50Service
+
+  @Autowired(required = false)
+  OpenPolicyAgentValidator openPolicyAgentValidator
 
   @RequestMapping(value = "/orchestrate", method = RequestMethod.POST)
   Map<String, Object> orchestrate(@RequestBody Map pipeline, HttpServletResponse response) {
@@ -232,6 +237,12 @@ class OperationsController {
   }
 
   Map parseAndValidatePipeline(Map pipeline, boolean resolveArtifacts) {
+    log.debug("Start of the parseAndValidatePipeline Pipeline trigger")
+    if(openPolicyAgentValidator != null){
+      log.debug("openPolicyAgentValidator not null")
+      openPolicyAgentValidator.validate(pipeline)
+    }
+
     parsePipelineTrigger(pipeline, resolveArtifacts)
 
     for (ExecutionPreprocessor preprocessor : executionPreprocessors.findAll {
@@ -252,6 +263,7 @@ class OperationsController {
     if (pipeline.errors != null) {
       throw new PipelineTemplateValidationException("Pipeline template is invalid", pipeline.errors as List<Map<String, Object>>)
     }
+    log.info("End of the parseAndValidatePipeline Pipeline trigger")
     return pipeline
   }
 
