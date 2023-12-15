@@ -5,15 +5,14 @@ RUN apt-get update && apt-get -y install openjdk-8-jre-headless wget vim  net-to
 RUN adduser --disabled-login --system spinnaker
 RUN mkdir -p /opt/orca/plugins && chown -R spinnaker:nogroup /opt/orca/plugins
 USER spinnaker
-RUN chmod -R 777 /opt/orca/plugins/
+RUN chmod -R 755 /opt/orca/plugins
+
 #custom plugin zip files adding
 ARG CUSTOMPLUGIN_RELEASEVERSION
 ENV CUSTOMPLUGIN_RELEASEVERSION=$CUSTOMPLUGIN_RELEASEVERSION
-RUN wget -O Opsmx.PolicyGatePlugin-RbacPlugin-v1.0.1-SNAPSHOT.zip -c https://github.com/OpsMx/Customplugins/releases/download/${CUSTOMPLUGIN_RELEASEVERSION}/RbacPlugin-v1.0.1-SNAPSHOT.zip -P /opt/orca/plugins    
-RUN mv Opsmx.PolicyGatePlugin-RbacPlugin-v1.0.1-SNAPSHOT.zip /opt/orca/plugins/ 
-    
 
-RUN chown -R spinnaker:spinnaker /opt/
+RUN wget -O /tmp/Opsmx.PolicyGatePlugin-RbacPlugin-v1.0.1-SNAPSHOT.zip -c https://github.com/OpsMx/Customplugins/releases/download/${CUSTOMPLUGIN_RELEASEVERSION}/RbacPlugin-v1.0.1-SNAPSHOT.zip -P /tmp 
+RUN mv /tmp/Opsmx.PolicyGatePlugin-RbacPlugin-v1.0.1-SNAPSHOT.zip /opt/orca/plugins/ 
+  
 USER spinnaker
-
 CMD ["/opt/orca/bin/orca"]
